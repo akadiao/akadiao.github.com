@@ -34,7 +34,7 @@ void draw()
 
 
 ```
-![Image](https://github.com/akadiao/akadiao.github.com/blob/main/duck.jpg)
+![Image](duck.jpg)
 
 ![Image](https://github.com/akadiao/akadiao.github.com/blob/main/pang.jpg)
 
