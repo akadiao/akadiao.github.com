@@ -1,7 +1,7 @@
 ## 一.图像风格化
 
 
-### 1.风格化
+### 1.条纹风格化
 
 
 ```markdown
@@ -34,7 +34,7 @@ void draw()
 
 
 ```
-![Image](duck.jpg)
+![Image](https://github.com/akadiao/akadiao.github.com/blob/main/duck.jpg)
 
 ![Image](https://github.com/akadiao/akadiao.github.com/blob/main/pang.jpg)
 
