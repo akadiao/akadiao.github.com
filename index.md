@@ -16,7 +16,7 @@
 ### PyTorch笔记
 
 
-
+### [Qt笔记](https://github.com/akadiao/akadiao.github.com/blob/main/QtNotes.md)
 
 
 
