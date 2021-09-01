@@ -62,6 +62,26 @@ delete reg;
 ```
 
 
+#### 修改IE浏览器的默认主页
+
+
+```makedown
+#include <QSettings>
+//实例QSettings
+QSettings *reg = new
+QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Internet
+Explorer\\Main",
+QSettings::NativeFormat);
+//判断value是否为空，不为空则输出
+if(reg->value("Start Page") != "")
+{
+//IE默认主页修改为：百度首页
+reg->setValue("Start Page","http://www.baidu.com");
+}
+//删除QSettings
+delete reg;
+
+```
 
 
 
