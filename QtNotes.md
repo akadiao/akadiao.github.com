@@ -247,6 +247,98 @@ void MainWindow::deletePro()
 
 ```
 
+#### 5、线程QThread应用
+
+mainwindow.h
+
+```makedown
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QPushButton>
+#include <QThread>
+namespace Ui {
+class MainWindow;
+}
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+private:
+    Ui::MainWindow *ui;
+
+private:
+    QPushButton *starThread;
+    QThread *thread;
+private slots:
+    //执行线程
+    void startFun();
+};
+
+#endif // MAINWINDOW_H
+```
+
+
+mainwindow.cpp
+
+```makedown
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QDebug>
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    //执行线程1
+    starThread = new QPushButton(this);
+    starThread->setText("执行新线程");
+    starThread->setGeometry(QRect(30,50,80,25));
+    connect(starThread,SIGNAL(clicked()),this,SLOT(startFun()));
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::startFun()
+{
+    //实例线程
+    thread = new QThread();
+    //启动
+    thread->start();
+    int i=0;
+        while(true)
+        {
+            //挂起1秒
+            thread->sleep(1);
+            i++;
+            qDebug() <<"print："<<i;
+            if(i > 5)
+            {
+                break;
+            }
+        }
+    qDebug() << "结束";
+}
+
+```
+
+
+
+
+
+
 
 
 
