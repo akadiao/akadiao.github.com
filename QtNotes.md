@@ -1,5 +1,5 @@
 
-#### 写入注册表
+#### 1、写入注册表
 
 ```makedown
 #include "mainwindow.h"
@@ -38,7 +38,7 @@ MainWindow::~MainWindow()
 ```
 
 
-#### 查找注册表
+#### 2、查找注册表
 
 ```makedown
 #include <QSettings>
@@ -62,7 +62,7 @@ delete reg;
 ```
 
 
-#### 修改IE浏览器的默认主页
+#### 3、修改IE浏览器的默认主页
 
 
 ```makedown
@@ -85,7 +85,7 @@ delete reg;
 
 
 
-#### 进程管理器
+#### 4、进程管理器
 
 mainwindow.h
 
