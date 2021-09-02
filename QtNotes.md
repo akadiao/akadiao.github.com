@@ -336,6 +336,163 @@ void MainWindow::startFun()
 
 
 
+#### 6、线程QRunnable应用
+
+
+QRunnable类
+QRunnable类是所有可运行对象的基类。
+QRunnable 类是一个接口，用于表示需要执行的任务或代码段，由您重新实现的 run() 函数表示。
+您可以使用 QThreadPool 在单独的线程中执行您的代码。 如果 autoDelete() 返回 true（默认值），QThreadPool 会自动删除 QRunnable。 使用 setAutoDelete() 更改自动删除标志。
+QThreadPool 通过在 run() 函数中调用 QThreadPool::tryStart(this) 支持多次执行相同的 QRunnable。 如果启用了 autoDelete，则当最后一个线程退出 run 函数时，QRunnable 将被删除。 当启用 autoDelete 时，使用相同的 QRunnable 多次调用 QThreadPool::start() 会产生竞争条件，因此不推荐使用。
+
+pure virtual void QRunnable::run()
+在你的子类中实现这个纯虚函数。
+void QRunnable::setAutoDelete(bool autoDelete)
+如果 autoDelete 为真，则启用自动删除；否则自动删除被禁用。
+如果开启了自动删除，QThreadPool会在调用run()后自动删除这个runnable；否则，所有权仍属于应用程序员。
+请注意，必须在调用 QThreadPool::start() 之前设置此标志。在 QThreadPool::start() 之后调用此函数会导致未定义的行为。
+
+
+mainwindow.h
+```makedown
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QPushButton>
+#include <QProgressBar>
+
+namespace Ui {
+class MainWindow;
+}
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+private:
+    Ui::MainWindow *ui;
+
+private:
+    QPushButton *startButton;
+    QProgressBar *progressBar;
+    QProgressBar *progressBar2;
+private slots:
+    void startFun();
+};
+
+#endif // MAINWINDOW_H
+
+```
+
+
+mainwindow.cpp
+
+```makedown
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QProgressBar>
+#include <QThreadPool>
+#include <runnable.h>
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+
+    //第一个QProgressBar
+    progressBar = new QProgressBar(this);
+    progressBar->setGeometry(QRect(50,50,200,16));
+    //初始值
+    progressBar->setValue(0);
+    //范围值
+    progressBar->setRange(0,100000-1);
+    //第二个QProgressBar
+    progressBar2 = new QProgressBar(this);
+    progressBar2->setGeometry(QRect(50,100,200,16));
+    //初始值
+    progressBar2->setValue(0);
+    //范围值
+    progressBar2->setRange(0,100000-1);
+    //实例按钮
+    startButton = new QPushButton(this);
+    startButton->setGeometry(QRect(260,45,80,25));
+    startButton->setText("执行");
+    connect(startButton,SIGNAL(clicked()),this,SLOT(startFun()));
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+//开始执行
+void MainWindow::startFun()
+{
+    //实例runnable类
+    runnable *hInst = new runnable(progressBar);
+    //实例第二个
+    hInst = new runnable(progressBar2);
+    //进程池
+    QThreadPool::globalInstance()->start(hInst);
+}
+
+```
+
+
+runnable.h
+
+```makedown
+#ifndef RUNNABLE_H
+#define RUNNABLE_H
+
+#include <QRunnable>
+#include <QProgressBar>
+class runnable : public QRunnable
+{
+    public:
+    runnable(QProgressBar *progressBar);
+    virtual ~runnable();
+    void run();
+    private:
+    QProgressBar *m_ProgressBar;
+};
+
+#endif // RUNNABLE_H
+
+```
+
+runnable.cpp
+
+```makedown
+#include <runnable.h>
+#include <QProgressBar>
+runnable::runnable(QProgressBar *progressBar):
+QRunnable(), m_ProgressBar(progressBar)
+{
+    for(int i=0;i<100000;i++)
+    {
+        progressBar->setValue(i);
+    }
+}
+runnable::~runnable(){}
+
+void runnable::run(){}
+
+```
+
+
+
+
+
+
+
 
 
 
