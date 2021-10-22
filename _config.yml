@@ -2,5 +2,5 @@ github:
   is_project_page: false
 name: luaphacim's site
 #title: null
-theme: jekyll-theme-primer
-#jekyll-theme-hacker
+theme: jekyll-theme-hacker
+#
