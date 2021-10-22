@@ -1,24 +1,23 @@
 ## 阿卡蒂奥的个人主页
-![Image](https://avatar.csdnimg.cn/5/D/3/1_akadiao.jpg)
 
-* 主要记录个人学习笔记，方便自己查阅；
-* 部分内容记录在 [CSND博客](https://blog.csdn.net/akadiao)
 
+*  [CSND博客](https://blog.csdn.net/akadiao)
 
 
 
-### TwinCAT3笔记
 
-### OpenCV笔记
+### TwinCAT3 Notes
 
-### [Processing笔记](https://github.com/akadiao/akadiao.github.com/blob/main/ProcessingNotes.md)
+### OpenCV Notes
 
-### PyTorch笔记
+### [Processing Notes](https://github.com/akadiao/akadiao.github.com/blob/main/ProcessingNotes.md)
+
+### PyTorch Notes
 
 
-### [Qt笔记](https://github.com/akadiao/akadiao.github.com/blob/main/QtNotes.md)
+### [Qt Notes](https://github.com/akadiao/akadiao.github.com/blob/main/QtNotes.md)
 
-### [Python笔记](https://github.com/akadiao/akadiao.github.com/blob/main/pythonFile.md)
+### [Python Notes](https://github.com/akadiao/akadiao.github.com/blob/main/pythonFile.md)
 
 
 ```markdown
