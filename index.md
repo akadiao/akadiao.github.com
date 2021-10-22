@@ -29,3 +29,5 @@ http://mahua.jser.me/
 **Bold** and _Italic_ and `Code` text
 
 
+github:
+  is_project_page: false
