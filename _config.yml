@@ -2,4 +2,7 @@ theme: jekyll-theme-hacker
 github:
   is_project_page: false
   
+github:
+  is\_project\_page:false
+  
 pages-themes/cayman#29
