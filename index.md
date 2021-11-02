@@ -1,7 +1,7 @@
-## 阿卡蒂奥的个人主页
+## 阿卡蒂奥主页
 
 
-*  [CSND博客](https://blog.csdn.net/akadiao)
+*  [CSND Blog](https://blog.csdn.net/akadiao)
 
 
 
