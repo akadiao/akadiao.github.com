@@ -20,6 +20,9 @@
 ### [Python Notes](https://github.com/akadiao/akadiao.github.com/blob/main/pythonFile.md)
 
 
+### [帮助](https://github.com/akadiao/akadiao.github.com/blob/main/help.html) 
+
+
 ```markdown
 http://mahua.jser.me/
 ```
