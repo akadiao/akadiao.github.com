@@ -43,6 +43,23 @@
 ##### [Star Emission](https://wangyasai.github.io/Stars-Emmision/)
 ##### [古典音乐频道](https://www.ncpa-classic.com/index.shtml)
 
+##### [黑客模拟](https://geektyper.com/)
+##### [营销号生成器](http://kaseidis.gitee.io/interesting_gadgets/marketing_generator/index.htm)
+##### [国际空间站对接模拟器](https://iss-sim.spacex.com/)
+##### [小霸王](https://www.yikm.net/)
+##### [图表在线生成工具](http://t.cn/A66G86lO)
+##### [需求分析脑图](https://www.5118.com/naotu/?t=zhihu)
+
+##### [3D 网页](https://alteredqualia.com/)
+##### [光线绘画网站](http://weavesilk.com/)
+##### [词云在线生成](https://wordart.com/j1nc19bornwr/tagulcom)
+##### [样机生成网](https://smartmockups.com/)
+##### [故障照片效果](https://getmosh.io/)
+##### [放射线条自动生成](https://wangyasai.github.io/Stars-Emmision/)
+##### [少女生成器](https://www.thiswaifudoesnotexist.net/)
+##### [藏头诗生成器](https://cts.chazhi.net/)
+
+
 #### 图片处理
 ##### [在线 Photoshop](https://www.photopea.com/)
 ##### [All effects 图片处理](https://photofunia.com/)
@@ -68,16 +85,35 @@
 ##### [Paco Games](https://www.pacogames.com/)
 ##### [wo1wan 游戏](https://www.wo1wan.com/)
 ##### [KBH Games](https://kbhgames.com/)
-##### [收集蜂蜜](http://www.wesane.com/game/927/)
-##### [无尽之湖](http://ggg.gaofushuaiba.cn/minigame/endlesslake/)
-##### [弹珠碰碰](http://www.wesane.com/game/780/)
+
 ##### [随机游戏地图生成器](https://donjon.bin.sh/fantasy/dungeon/)
 ##### [随机城市地图生成器](https://inkwellideas.com/free-tools/random-city-map-generator/)
 ##### [随机星球地图生成器](https://donjon.bin.sh/world/)
 ##### [随机平面地图生成器](https://rollforfantasy.com/tools/map-creator.php)
 
 
+##### [收集蜂蜜](http://www.wesane.com/game/927/)
+##### [无尽之湖](http://ggg.gaofushuaiba.cn/minigame/endlesslake/)
+##### [弹珠碰碰](http://www.wesane.com/game/780/)
 
+##### [我的世界在线版](https://classic.minecraft.net/?join=MFlcihI-XY-ErVCX)
+##### [神庙逃亡 在线版](https://tr.heheda.top/)
+##### [植物大战僵尸 在线版](http://pvz.56wan.com/)
+##### [斯诺克 在线版](http://www.heyzxz.me/pcol/)
+##### [连连看 在线版](https://lines.frvr.com/)
+##### [永不言弃 在线版](https://ngu.heheda.top/)
+##### [水果忍者在线版](https://fn.heheda.top/) 
 
+##### [贪吃蛇 在线版](http://powerline.io/)
+##### [红色警戒2 在线版](https://game.chronodivide.com/)
+##### [碧蓝幻想 在线版](http://game.granbluefantasy.jp/)
+##### [俄罗斯方块 在线版](https://chvin.github.io/react-tetris/)
+##### [超级马里奥 在线版](https://game.ioxapp.com/mario/)
+##### [Looptap 在线版](https://looptap.vasanthv.com/)
+##### [CXK打篮球 在线版](https://cxk.ssrr.one/)
+##### [深海大作战 在线版](https://deeeep.io/)
+##### [BeatStage 在线版](https://www.beatstage.com/)
+##### [Sharkle 在线版](https://sharkle.com/)
+##### [The Sea We Breathe](https://www.bluemarinefoundation.com/the-sea-we-breathe/)
 
 
