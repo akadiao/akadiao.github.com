@@ -58,6 +58,7 @@
 ##### [放射线条自动生成](https://wangyasai.github.io/Stars-Emmision/)
 ##### [少女生成器](https://www.thiswaifudoesnotexist.net/)
 ##### [藏头诗生成器](https://cts.chazhi.net/)
+##### [随机狗子生成器](https://random.dog/)
 
 
 #### 图片处理
