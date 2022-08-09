@@ -16,49 +16,19 @@
 
 
 ## -----------------------------------------------------------------------------------------
-
-#### 计算机
-##### [msdn 我告诉你](https://msdn.itellyou.cn/)
-##### [开源软件平台](https://sourceforge.net/)
-##### [W3C](https://www.w3school.com.cn/)
-
-#### 工具
-##### [LaTeX 公式编辑器](https://editor.codecogs.com/)
-##### [SooPAT 专利搜索](http://www2.soopat.com/home/iindex)
-##### [US 专利搜索](https://www.freepatentsonline.com/y2008/0147333.html)
-##### [秘塔写作猫](https://xiezuocat.com/#/)
-##### [图表在线生成工具](http://t.cn/A66G86lO)
-##### [需求分析脑图](https://www.5118.com/naotu/?t=zhihu)
-
-#### 图片处理
-##### [在线 Photoshop](https://www.photopea.com/)
-##### [All effects 图片处理](https://photofunia.com/)
-##### [中国传统色](http://zhongguose.com/#anyuzi)
-##### [AutoDraw](https://www.autodraw.com/)
-##### [图片放大](https://bigjpg.com/)
-##### [图片压缩](https://squoosh.app/)
-##### [在线词云设计](https://wordart.com/)
-
-#### 文化
-##### [电子图书馆](https://1lib.domains/?redirectUrl=/)
-##### [知妖 中国妖怪百集](https://www.cbaigui.com/)
-##### [全历史](https://www.allhistory.com/)
-##### [哈佛汉学研究](https://guides.library.harvard.edu/Chinese?utm_source=Library+Staff&utm_campaign=9fca5a7bb3-EMAIL_CAMPAIGN_2017_06_28&utm_medium=email&utm_term=0_4bb25c0228-9fca5a7bb3-26352423)
-##### [Cornell arxiv 论文](https://arxiv.org/)
-##### [Proquest 论文](https://www.proquest.com/)
-##### [中国行政区划](http://www.xzqh.org/html/list/10100.html)
-##### [古典音乐频道](https://www.ncpa-classic.com/index.shtml)
-
-#### 科普在线
-##### [3D分子式展示](https://alteredqualia.com/canvasmol/)
-##### [The Size of Space](https://neal.fun/size-of-space/)
-##### [Яндекс 俄罗斯地图](https://yandex.ru/)
-##### [天空有多高](http://www.secaibi.com/howbigisspace/)
-##### [从太空看流星雨](https://www.meteorshowers.org/)
-##### [核爆在线模拟](https://nuclearsecrecy.com/nukemap/)
-##### [国际空间站对接模拟器](https://iss-sim.spacex.com/)
-##### [古老地球全球](https://dinosaurpictures.org/ancient-earth#240)
-
+#### 网站收藏
+##### [雨声在线播放](https://www.rainymood.com/)
+##### [环境音在线播](https://asoftmurmur.com/)
+##### [没啥用网站](https://theuselessweb.com/)
+##### [Star Emission](https://wangyasai.github.io/Stars-Emmision/)
+##### [3D 网页](https://alteredqualia.com/)
+##### [样机生成网](https://smartmockups.com/)
+##### [故障照片效果](https://getmosh.io/)
+##### [少女生成器](https://www.thiswaifudoesnotexist.net/)
+##### [此人不存在](https://thispersondoesnotexist.com/)
+##### [随机狗子生成器](https://random.dog/)
+##### [考拉现身](http://www.koalastothemax.com/)
+##### [发呆两分钟](donothingfor2minutes.com)
 
 #### 另类工具
 ##### [假装系统升级界面](https://fakeupdate.net/)
@@ -73,19 +43,46 @@
 ##### [词云在线生成](https://wordart.com/j1nc19bornwr/tagulcom)
 ##### [藏头诗生成器](https://cts.chazhi.net/)
 
-#### 网站收藏
-##### [雨声在线播放](https://www.rainymood.com/)
-##### [环境音在线播](https://asoftmurmur.com/)
-##### [没啥用网站](https://theuselessweb.com/)
-##### [Star Emission](https://wangyasai.github.io/Stars-Emmision/)
-##### [3D 网页](https://alteredqualia.com/)
-##### [样机生成网](https://smartmockups.com/)
-##### [故障照片效果](https://getmosh.io/)
-##### [少女生成器](https://www.thiswaifudoesnotexist.net/)
-##### [此人不存在](https://thispersondoesnotexist.com/)
-##### [随机狗子生成器](https://random.dog/)
-##### [考拉现身](http://www.koalastothemax.com/)
-##### [发呆两分钟](donothingfor2minutes.com)
+
+#### 正经工具
+##### [LaTeX 公式编辑器](https://editor.codecogs.com/)
+##### [SooPAT 专利搜索](http://www2.soopat.com/home/iindex)
+##### [US 专利搜索](https://www.freepatentsonline.com/y2008/0147333.html)
+##### [Cornell arxiv 论文](https://arxiv.org/)
+##### [Proquest 论文](https://www.proquest.com/)
+##### [秘塔写作猫](https://xiezuocat.com/#/)
+##### [图表在线生成工具](http://t.cn/A66G86lO)
+##### [需求分析脑图](https://www.5118.com/naotu/?t=zhihu)
+##### [msdn 我告诉你](https://msdn.itellyou.cn/)
+##### [开源软件平台](https://sourceforge.net/)
+##### [W3C](https://www.w3school.com.cn/)
+
+#### 图片处理
+##### [在线 Photoshop](https://www.photopea.com/)
+##### [All effects 图片处理](https://photofunia.com/)
+##### [中国传统色](http://zhongguose.com/#anyuzi)
+##### [AutoDraw](https://www.autodraw.com/)
+##### [图片放大](https://bigjpg.com/)
+##### [图片压缩](https://squoosh.app/)
+##### [在线词云设计](https://wordart.com/)
+
+#### 文化知识
+##### [电子图书馆](https://1lib.domains/?redirectUrl=/)
+##### [知妖 中国妖怪百集](https://www.cbaigui.com/)
+##### [全历史](https://www.allhistory.com/)
+##### [哈佛汉学研究](https://guides.library.harvard.edu/Chinese?utm_source=Library+Staff&utm_campaign=9fca5a7bb3-EMAIL_CAMPAIGN_2017_06_28&utm_medium=email&utm_term=0_4bb25c0228-9fca5a7bb3-26352423)
+##### [中国行政区划](http://www.xzqh.org/html/list/10100.html)
+##### [古典音乐频道](https://www.ncpa-classic.com/index.shtml)
+
+#### 科普在线
+##### [3D分子式展示](https://alteredqualia.com/canvasmol/)
+##### [The Size of Space](https://neal.fun/size-of-space/)
+##### [Яндекс 俄罗斯地图](https://yandex.ru/)
+##### [天空有多高](http://www.secaibi.com/howbigisspace/)
+##### [从太空看流星雨](https://www.meteorshowers.org/)
+##### [核爆在线模拟](https://nuclearsecrecy.com/nukemap/)
+##### [国际空间站对接模拟器](https://iss-sim.spacex.com/)
+##### [古老地球全球](https://dinosaurpictures.org/ancient-earth#240)
 
 
 
