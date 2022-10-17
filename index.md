@@ -34,12 +34,15 @@
 
 #### 正经工具
 ##### [LaTeX 公式编辑器](https://editor.codecogs.com/)
-##### [SooPAT 专利搜索](http://www2.soopat.com/home/iindex)
-##### [US 专利搜索](https://www.freepatentsonline.com/y2008/0147333.html)
+##### [数学公式&绘图](https://www.mathcha.io/)
+##### [图表在线生成工具](http://t.cn/A66G86lO)
 ##### [Cornell arxiv 论文](https://arxiv.org/)
 ##### [Proquest 论文](https://www.proquest.com/)
+##### [iData 论文检索](https://www.cn-ki.net/)
+##### [SooPAT 专利搜索](http://www2.soopat.com/home/iindex)
+##### [US 专利搜索](https://www.freepatentsonline.com/y2008/0147333.html)
 ##### [秘塔写作猫](https://xiezuocat.com/#/)
-##### [图表在线生成工具](http://t.cn/A66G86lO)
+##### [Verilog HDL学习与仿真](https://hdlbits.01xz.net/wiki/Main_Page)
 ##### [需求分析脑图](https://www.5118.com/naotu/?t=zhihu)
 ##### [msdn 我告诉你](https://msdn.itellyou.cn/)
 ##### [开源软件平台](https://sourceforge.net/)
@@ -53,6 +56,7 @@
 ##### [图片放大](https://bigjpg.com/)
 ##### [图片压缩](https://squoosh.app/)
 ##### [在线词云设计](https://wordart.com/)
+##### [老照片AI修复](https://jpghd.com/)
 
 #### 文化知识
 ##### [电子图书馆](https://1lib.domains/?redirectUrl=/)
@@ -61,6 +65,7 @@
 ##### [哈佛汉学研究](https://guides.library.harvard.edu/Chinese?utm_source=Library+Staff&utm_campaign=9fca5a7bb3-EMAIL_CAMPAIGN_2017_06_28&utm_medium=email&utm_term=0_4bb25c0228-9fca5a7bb3-26352423)
 ##### [中国行政区划](http://www.xzqh.org/html/list/10100.html)
 ##### [古典音乐频道](https://www.ncpa-classic.com/index.shtml)
+##### [金日成综合大学](http://www.ryongnamsan.edu.kp/univ/cn/index)
 
 #### 科普在线
 ##### [3D分子式展示](https://alteredqualia.com/canvasmol/)
