@@ -5,6 +5,16 @@
 
 ## -----------------------------------------------------------------------------------------
 #### 网站收藏
+##### [安娜档案电子书](https://annas-archive.org/)
+##### [电子图书馆](https://1lib.domains/?redirectUrl=/)
+##### [谷粉学术 sci-hub](https://gfsoso.99lb.net/sci-hub.html)
+##### [Verilog HDL学习](https://hdlbits.01xz.net/wiki/Main_Page)
+##### [知妖 中国妖怪百集](https://www.cbaigui.com/)
+##### [全历史](https://www.allhistory.com/)
+##### [哈佛汉学研究](https://guides.library.harvard.edu/Chinese?utm_source=Library+Staff&utm_campaign=9fca5a7bb3-EMAIL_CAMPAIGN_2017_06_28&utm_medium=email&utm_term=0_4bb25c0228-9fca5a7bb3-26352423)
+##### [中国行政区划](http://www.xzqh.org/html/list/10100.html)
+##### [古典音乐频道](https://www.ncpa-classic.com/index.shtml)
+##### [金日成综合大学](http://www.ryongnamsan.edu.kp/univ/cn/index)
 ##### [雨声在线播放](https://www.rainymood.com/)
 ##### [环境音在线播](https://asoftmurmur.com/)
 ##### [没啥用网站](https://theuselessweb.com/)
@@ -33,6 +43,7 @@
 
 
 #### 正经工具
+##### [desmos 函数图像](https://www.desmos.com/calculator?lang=zh-CN)
 ##### [LaTeX 公式编辑器](https://editor.codecogs.com/)
 ##### [数学公式&绘图](https://www.mathcha.io/)
 ##### [图表在线生成工具](http://t.cn/A66G86lO)
@@ -58,14 +69,7 @@
 ##### [在线词云设计](https://wordart.com/)
 ##### [老照片AI修复](https://jpghd.com/)
 
-#### 文化知识
-##### [电子图书馆](https://1lib.domains/?redirectUrl=/)
-##### [知妖 中国妖怪百集](https://www.cbaigui.com/)
-##### [全历史](https://www.allhistory.com/)
-##### [哈佛汉学研究](https://guides.library.harvard.edu/Chinese?utm_source=Library+Staff&utm_campaign=9fca5a7bb3-EMAIL_CAMPAIGN_2017_06_28&utm_medium=email&utm_term=0_4bb25c0228-9fca5a7bb3-26352423)
-##### [中国行政区划](http://www.xzqh.org/html/list/10100.html)
-##### [古典音乐频道](https://www.ncpa-classic.com/index.shtml)
-##### [金日成综合大学](http://www.ryongnamsan.edu.kp/univ/cn/index)
+
 
 #### 科普在线
 ##### [3D分子式展示](https://alteredqualia.com/canvasmol/)
@@ -122,27 +126,8 @@
 
 ### [Processing Notes](https://github.com/akadiao/akadiao.github.com/blob/main/ProcessingNotes.md)
 
-### PyTorch Notes
 
 ### [Qt Notes](https://github.com/akadiao/akadiao.github.com/blob/main/QtNotes.md)
 
 ### [Python Notes](https://github.com/akadiao/akadiao.github.com/blob/main/pythonFile.md)
 
-### TwinCAT3 Notes
-
-### OpenCV Notes
-
-<table border="1">
-    <tr>
-        <th>Header 1</th>
-        <th>Header 2</th>
-    </tr>
-    <tr>
-        <td>row 1, cell 1</td>
-        <td>row 1, cell 2</td>
-    </tr>
-    <tr>
-        <td>row 2, cell 1</td>
-        <td>row 2, cell 2</td>
-    </tr>
-</table>
