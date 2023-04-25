@@ -80,7 +80,7 @@
 ##### [核爆在线模拟](https://nuclearsecrecy.com/nukemap/)
 ##### [国际空间站对接模拟器](https://iss-sim.spacex.com/)
 ##### [古老地球全球](https://dinosaurpictures.org/ancient-earth#240)
-
+##### [船舶查询 船讯网](https://www.shipxy.com/)
 
 
 #### 游戏
