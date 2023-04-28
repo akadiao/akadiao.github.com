@@ -1,26 +1,4 @@
 
----
-title: "标题"
-output:
-  html_document:
-    toc: true
-    toc_float: true
----
-# Quarterly Results {.tabset}
- 
-```{r echo=FALSE}
-df <- data.frame(x=c('hello1','hello4','hello3','hello4'))
-```
- 
- 
-## `r df[1,1]`
-## `r df[2,1]`
-## `r df[3,1]`
-## `r df[4,1]`
-
-
-
-
 
 ## 阿卡蒂奥主页
 ###  [CSND Blog](https://blog.csdn.net/akadiao)
@@ -77,6 +55,7 @@ df <- data.frame(x=c('hello1','hello4','hello3','hello4'))
 ##### [US 专利搜索](https://www.freepatentsonline.com/y2008/0147333.html)
 ##### [秘塔写作猫](https://xiezuocat.com/#/)
 ##### [Verilog HDL学习与仿真](https://hdlbits.01xz.net/wiki/Main_Page)
+##### [Verilog 课程](https://users.monash.edu/~app/CSE2306/)
 ##### [需求分析脑图](https://www.5118.com/naotu/?t=zhihu)
 ##### [msdn 我告诉你](https://msdn.itellyou.cn/)
 ##### [开源软件平台](https://sourceforge.net/)
