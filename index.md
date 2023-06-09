@@ -74,6 +74,7 @@
 
 
 #### 科普在线
+##### [3D张量可视化](https://projector.tensorflow.org/)
 ##### [3D分子式展示](https://alteredqualia.com/canvasmol/)
 ##### [The Size of Space](https://neal.fun/size-of-space/)
 ##### [Яндекс 俄罗斯地图](https://yandex.ru/)
