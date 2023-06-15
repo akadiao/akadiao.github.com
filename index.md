@@ -30,6 +30,7 @@
 ##### [发呆两分钟](donothingfor2minutes.com)
 
 #### 另类工具
+##### [未来工具合集](https://www.futuretools.io/)
 ##### [假装系统升级界面](https://fakeupdate.net/)
 ##### [黑客模拟](https://geektyper.com/)
 ##### [营销号生成器](http://kaseidis.gitee.io/interesting_gadgets/marketing_generator/index.htm)
