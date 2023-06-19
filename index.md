@@ -61,6 +61,7 @@
 ##### [msdn 我告诉你](https://msdn.itellyou.cn/)
 ##### [开源软件平台](https://sourceforge.net/)
 ##### [W3C](https://www.w3school.com.cn/)
+##### [佐治亚理工学院可视化线性代数教程](https://textbooks.math.gatech.edu/ila/index2.html)
 
 #### 图片处理
 ##### [在线 Photoshop](https://www.photopea.com/)
