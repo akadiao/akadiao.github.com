@@ -89,6 +89,7 @@
 
 
 #### 游戏
+##### [迷宫](https://maze.toys/)
 ##### [小霸王](https://www.yikm.net/)
 ##### [复古游戏厅](https://www.yikm.net/)
 ##### [Crazy Games](https://www.crazygames.com/)
