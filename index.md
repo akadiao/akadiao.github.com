@@ -7,7 +7,7 @@
 ## ------------------------
 #### 网站收藏
 ##### [安娜档案电子书](https://annas-archive.org/)
-##### [电子图书馆](https://1lib.domains/?redirectUrl=/)
+##### [电子图书馆](https://zlibrary-china.se/)
 ##### [谷粉学术 sci-hub](https://gfsoso.99lb.net/sci-hub.html)
 ##### [Verilog HDL学习](https://hdlbits.01xz.net/wiki/Main_Page)
 ##### [知妖 中国妖怪百集](https://www.cbaigui.com/)
