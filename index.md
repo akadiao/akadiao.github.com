@@ -86,6 +86,7 @@
 ##### [国际空间站对接模拟器](https://iss-sim.spacex.com/)
 ##### [古老地球全球](https://dinosaurpictures.org/ancient-earth#240)
 ##### [船舶查询 船讯网](https://www.shipxy.com/)
+##### [学术家谱](https://academictree.org/)
 
 
 #### 游戏
