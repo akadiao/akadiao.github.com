@@ -62,6 +62,7 @@
 ##### [开源软件平台](https://sourceforge.net/)
 ##### [W3C](https://www.w3school.com.cn/)
 ##### [佐治亚理工学院可视化线性代数教程](https://textbooks.math.gatech.edu/ila/index2.html)
+##### [WinXray](https://github.com/TheMRLL/WinXray)
 
 #### 图片处理
 ##### [在线 Photoshop](https://www.photopea.com/)
