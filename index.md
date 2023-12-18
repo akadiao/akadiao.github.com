@@ -64,7 +64,7 @@
 ##### [佐治亚理工学院可视化线性代数教程](https://textbooks.math.gatech.edu/ila/index2.html)
 ##### [WinXray](https://github.com/TheMRLL/WinXray)
 
-#### 图片处理
+#### 音视频/图片处理
 ##### [在线 Photoshop](https://www.photopea.com/)
 ##### [All effects 图片处理](https://photofunia.com/)
 ##### [中国传统色](http://zhongguose.com/#anyuzi)
@@ -73,7 +73,9 @@
 ##### [图片压缩](https://squoosh.app/)
 ##### [在线词云设计](https://wordart.com/)
 ##### [老照片AI修复](https://jpghd.com/)
-
+##### [音频在线编辑](https://vocalremover.org/zh/cutter)
+##### [音视频在线编辑](https://online-video-cutter.com/cn/)
+##### [音视频在线编辑](https://www.veed.io/zh-CN/tools/crop-video)
 
 
 #### 科普在线
