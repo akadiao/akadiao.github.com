@@ -6,6 +6,7 @@
 
 ## ------------------------
 #### 网站收藏
+##### [Reddit](https://www.reddit.com/)
 ##### [安娜档案电子书](https://annas-archive.org/)
 ##### [电子图书馆](https://zlibrary-china.se/)
 ##### [谷粉学术 sci-hub](https://gfsoso.99lb.net/sci-hub.html)
@@ -28,6 +29,7 @@
 ##### [随机狗子生成器](https://random.dog/)
 ##### [考拉现身](http://www.koalastothemax.com/)
 ##### [发呆两分钟](donothingfor2minutes.com)
+##### [趣站汇总](https://youquhome.com/jingdian/)
 
 #### 另类工具
 ##### [未来工具合集](https://www.futuretools.io/)
@@ -45,6 +47,7 @@
 
 
 #### 正经工具
+##### [Makdown编辑器](https://www.zybuluo.com/cmd/)
 ##### [desmos 函数图像](https://www.desmos.com/calculator?lang=zh-CN)
 ##### [LaTeX 公式编辑器](https://editor.codecogs.com/)
 ##### [数学公式&绘图](https://www.mathcha.io/)
