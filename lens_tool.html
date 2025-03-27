@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相机镜头选型工具</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            background: linear-gradient(to right, #4361ee, #3f37c9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #4361ee, #3f37c9);
+            border-radius: 2px;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+        }
+        
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: #f8f9fa;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button i {
+            margin-right: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #f1f3f5;
+        }
+        
+        .recommended {
+            background-color: rgba(76, 201, 240, 0.1) !important;
+            position: relative;
+        }
+        
+        .recommended::before {
+            content: '★ 推荐';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: var(--success-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .match-score {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .match-high {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: #006d77;
+        }
+        
+        .match-medium {
+            background-color: rgba(255, 183, 3, 0.2);
+            color: #9a5b00;
+        }
+        
+        .match-low {
+            background-color: rgba(247, 37, 133, 0.2);
+            color: #800f2f;
+        }
+        
+        .note {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark-color);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            th, td {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>相机镜头选型工具</h1>
+            <p>根据物距和视野需求，智能推荐最适合的镜头焦距</p>
+        </header>
+        
+        <div class="card">
+            <h2>输入参数</h2>
+            <div class="input-group">
+                <label for="workingDistance">物距 (mm)
+                    <span class="tooltip">?
+                        <span class="tooltiptext">相机镜头前表面到被测物体的距离</span>
+                    </span>
+                </label>
+                <input type="number" id="workingDistance" min="1" value="500">
+            </div>
+            
+            <div class="input-group">
+                <label for="sensorSize">传感器尺寸
+                    <span class="tooltip">?
+                        <span class="tooltiptext">相机的图像传感器尺寸，通常可以在相机规格中找到</span>
+                    </span>
+                </label>
+                <select id="sensorSize">
+                    <option value="1/4">1/4" (3.6×2.7mm)</option>
+                    <option value="1/3">1/3" (4.8×3.6mm)</option>
+                    <option value="1/2.5">1/2.5" (5.8×4.3mm)</option>
+                    <option value="1/2">1/2" (6.4×4.8mm)</option>
+                    <option value="2/3">2/3" (8.8×6.6mm)</option>
+                    <option value="1">1" (13.2×8.8mm)</option>
+                    <option value="4/3">4/3" (17.3×13mm)</option>
+                    <option value="APS-C">APS-C (23.6×15.7mm)</option>
+                    <option value="FullFrame">全画幅 (36×24mm)</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="horizontalFOV">水平视野 (mm)
+                    <span class="tooltip">?
+                        <span class="tooltiptext">您需要在水平方向上看到的场景宽度</span>
+                    </span>
+                </label>
+                <input type="number" id="horizontalFOV" min="1" value="100">
+            </div>
+            
+            <div class="input-group">
+                <label for="verticalFOV">垂直视野 (mm)
+                    <span class="tooltip">?
+                        <span class="tooltiptext">您需要在垂直方向上看到的场景高度</span>
+                    </span>
+                </label>
+                <input type="number" id="verticalFOV" min="1" value="75">
+            </div>
+            
+            <button onclick="calculateLenses()">
+                <i>🔍</i> 计算推荐镜头
+            </button>
+        </div>
+        
+        <div class="card">
+            <h2>推荐镜头</h2>
+            <table id="lensTable">
+                <thead>
+                    <tr>
+                        <th>焦距 (mm)</th>
+                        <th>水平视野 (mm)</th>
+                        <th>垂直视野 (mm)</th>
+                        <th>对角线视野 (mm)</th>
+                        <th>匹配度</th>
+                    </tr>
+                </thead>
+                <tbody id="lensResults">
+                    <!-- 结果将在这里动态生成 -->
+                </tbody>
+            </table>
+            
+            <p class="note">注：匹配度表示镜头视野与目标视野的接近程度，100%表示完全匹配。匹配度越高，镜头越能满足您的视野需求。</p>
+        </div>
+    </div>
+    
+    <script>
+        // 标准镜头焦距列表 (单位:mm)
+        const standardFocalLengths = [
+            2.8, 3.5, 4, 4.5, 5, 6, 8, 12, 16, 20, 24, 28, 35, 50, 75, 85, 100, 135, 200
+        ];
+        
+        // 传感器尺寸对应的实际尺寸 (宽×高, 单位:mm)
+        const sensorDimensions = {
+            "1/4": { width: 3.6, height: 2.7 },
+            "1/3": { width: 4.8, height: 3.6 },
+            "1/2.5": { width: 5.8, height: 4.3 },
+            "1/2": { width: 6.4, height: 4.8 },
+            "2/3": { width: 8.8, height: 6.6 },
+            "1": { width: 13.2, height: 8.8 },
+            "4/3": { width: 17.3, height: 13 },
+            "APS-C": { width: 23.6, height: 15.7 },
+            "FullFrame": { width: 36, height: 24 }
+        };
+        
+        function calculateLenses() {
+            const workingDistance = parseFloat(document.getElementById("workingDistance").value);
+            const sensorSize = document.getElementById("sensorSize").value;
+            const targetHFOV = parseFloat(document.getElementById("horizontalFOV").value);
+            const targetVFOV = parseFloat(document.getElementById("verticalFOV").value);
+            
+            const sensorWidth = sensorDimensions[sensorSize].width;
+            const sensorHeight = sensorDimensions[sensorSize].height;
+            
+            const results = [];
+            
+            // 计算每个焦距的视野
+            standardFocalLengths.forEach(focalLength => {
+                // 计算实际视野
+                const hFOV = (sensorWidth * workingDistance) / focalLength;
+                const vFOV = (sensorHeight * workingDistance) / focalLength;
+                const dFOV = Math.sqrt(hFOV*hFOV + vFOV*vFOV);
+                
+                // 计算匹配度 (基于水平和垂直视野的几何平均)
+                const hMatch = Math.min(targetHFOV, hFOV) / Math.max(targetHFOV, hFOV);
+                const vMatch = Math.min(targetVFOV, vFOV) / Math.max(targetVFOV, vFOV);
+                const matchScore = Math.sqrt(hMatch * vMatch) * 100;
+                
+                results.push({
+                    focalLength,
+                    hFOV,
+                    vFOV,
+                    dFOV,
+                    matchScore
+                });
+            });
+            
+            // 按匹配度排序
+            results.sort((a, b) => b.matchScore - a.matchScore);
+            
+            // 显示结果
+            displayResults(results);
+        }
+        
+        function displayResults(results) {
+            const tableBody = document.getElementById("lensResults");
+            tableBody.innerHTML = "";
+            
+            results.forEach((result, index) => {
+                const row = document.createElement("tr");
+                if (index === 0) {
+                    row.className = "recommended";
+                }
+                
+                // 根据匹配度确定样式类
+                let matchClass = "match-high";
+                if (result.matchScore < 70) matchClass = "match-medium";
+                if (result.matchScore < 50) matchClass = "match-low";
+                
+                row.innerHTML = `
+                    <td><strong>${result.focalLength}</strong></td>
+                    <td>${result.hFOV.toFixed(1)}</td>
+                    <td>${result.vFOV.toFixed(1)}</td>
+                    <td>${result.dFOV.toFixed(1)}</td>
+                    <td><span class="match-score ${matchClass}">${result.matchScore.toFixed(1)}%</span></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 初始化计算
+        window.onload = calculateLenses;
+    </script>
+</body>
+</html>
