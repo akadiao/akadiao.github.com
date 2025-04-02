@@ -1,9 +1,8 @@
-# Welcome to My GitHub Page
+# Welcome ~~~
 
 [镜头选型工具](/lens_tool.html)
 
-## 阿卡蒂奥主页
-###  [CSND Blog](https://blog.csdn.net/akadiao)
+[拍照工具](/open_camera_grab_picture5.html)
 
 
 ## ------------------------
@@ -139,10 +138,5 @@
 
 
 
-### [Processing Notes](https://github.com/akadiao/akadiao.github.com/blob/main/ProcessingNotes.md)
 
-
-### [Qt Notes](https://github.com/akadiao/akadiao.github.com/blob/main/QtNotes.md)
-
-### [Python Notes](https://github.com/akadiao/akadiao.github.com/blob/main/pythonFile.md)
 
