@@ -6,6 +6,17 @@
 
 
 ## ------------------------
+#### 搜索引擎
+##### [俄罗斯Yandex](https://yandex.com/)
+##### [韩国NAVER](https://www.naver.com/)
+##### [SajaSearch](https://www.sajasearch.com/)
+##### [Lycos](https://www.lycos.com/)
+##### [Akavita](https://akavita.com/ru/)
+##### [duckduckgo](https://duckduckgo.com/)
+##### [秘塔AI搜索](https://metaso.cn/)
+
+
+## ------------------------
 #### 网站收藏
 ##### [Reddit](https://www.reddit.com/)
 ##### [安娜档案电子书](https://annas-archive.org/)
@@ -31,6 +42,7 @@
 ##### [考拉现身](http://www.koalastothemax.com/)
 ##### [发呆两分钟](donothingfor2minutes.com)
 ##### [趣站汇总](https://youquhome.com/jingdian/)
+##### [画圆挑战](https://matrix67.itch.io/pi-day-challenge)
 
 #### 另类工具
 ##### [未来工具合集](https://www.futuretools.io/)
