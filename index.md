@@ -1,6 +1,6 @@
 # Welcome ~~~
 
-[镜头选型工具](/lens_tool.html)
+[产品部三车间CCD机台匹配工具](/产品部三车间CCD机台匹配工具.HTML)
 
 [拍照工具](/open_camera_grab_picture5.html)
 
