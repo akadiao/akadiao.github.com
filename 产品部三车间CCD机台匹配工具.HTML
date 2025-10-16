@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCD设备匹配工具</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            background: linear-gradient(to right, #4361ee, #3f37c9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #4361ee, #3f37c9);
+            border-radius: 2px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .input-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+
+        .input-group {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: #f8f9fa;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        button {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button i {
+            margin-right: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #f1f3f5;
+            cursor: pointer;
+        }
+
+        .recommended > td {
+            background-color: rgba(76, 201, 240, 0.1);
+            font-weight: bold;
+        }
+
+        .detail-row {
+            background-color: #f1f3f5 !important;
+            display: none;
+        }
+
+        .detail-row td {
+            padding: 0;
+            font-size: 0.95rem;
+            color: #495057;
+            border-top: none;
+        }
+
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+        .detail-table th, .detail-table td {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .detail-table th {
+            background-color: #727272;
+            color: white;
+            font-weight: normal;
+        }
+        .detail-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .detail-table .ccd-row {
+            background-color: #fff9e6;
+        }
+        .detail-table .device-header {
+            background-color: #e8f4f8;
+            color: #333;
+        }
+
+        .match-score {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .match-high {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: #006d77;
+        }
+
+        .match-medium {
+            background-color: rgba(255, 183, 3, 0.2);
+            color: #9a5b00;
+        }
+
+        .match-low {
+            background-color: rgba(247, 37, 133, 0.2);
+            color: #800f2f;
+        }
+
+        .note {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: var(--dark-color);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .checkbox-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            font-size: 14px;
+            padding: 8px 0;
+        }
+
+        .checkbox-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            padding: 0;
+            margin: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div style="position: absolute; top: 10px; left: 10px; z-index: 100;">
+        <img src="./CCD_Select/domain_logo.png" alt="Logo" width="140" height="50" style="border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0);">
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>产品部三车间CCD设备匹配工具</h1>
+            <p>根据产品尺寸与检测需求，智能推荐最适合的CCD设备</p>
+        </header>
+
+        <div class="card">
+            <h2>产品参数</h2>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="productLength">产品长度 (mm)
+                        <span class="tooltip">
+                            <span class="tooltiptext">矩形产品的最长边长，或外接矩形的长度</span>
+                        </span>
+                    </label>
+                    <input type="number" id="productLength" min="0.001" value="5">
+                </div>
+
+                <div class="input-group">
+                    <label for="productWidth">产品宽度 (mm)
+                        <span class="tooltip">
+                            <span class="tooltiptext">矩形产品的次长边长，或外接矩形的宽度</span>
+                        </span>
+                    </label>
+                    <input type="number" id="productWidth" min="0.001" value="3.5">
+                </div>
+
+                <div class="input-group">
+                    <label for="productThickness">产品厚度 (mm)
+                        <span class="tooltip">
+                            <span class="tooltiptext">产品在垂直方向的高度</span>
+                        </span>
+                    </label>
+                    <input type="number" id="productThickness" min="0.001" value="2">
+                </div>
+
+                <div class="input-group">
+                    <label for="surfaceFinish">表面处理
+                        <span class="tooltip">
+                            <span class="tooltiptext">产品表面的处理方式，影响光照选择</span>
+                        </span>
+                    </label>
+                    <select id="surfaceFinish">
+                        <option value="rough">默认</option>
+                        <option value="galvanized">镀锌</option>
+                        <option value="compound">化合物涂层</option>
+                        <option value="cuni">CUNI</option>
+                        <option value="nicuni">NICUNI</option>
+                        <option value="FHJczn">复合碱CZN</option>
+                        <option value="FHJzn">复合碱ZN</option>
+                        <option value="ninini">NININI</option>
+                        <option value="polished">哑NICUNI</option>
+                        <option value="matte">硫酸盐复合ZN</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+
+                <div class="input-group"></div>
+                <div class="input-group"></div>
+                <div class="input-group"></div>
+
+                <div class="input-group" style="grid-column: span 4;">
+                    <!-- 第一行 -->
+                    <div class="checkbox-container">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="selectAll">
+                            <span>全选</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="flatDimension">
+                            <span>平面尺寸</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="thicknessDimension">
+                            <span>厚度尺寸</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="endFace">
+                            <span>端面检测</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="faceDifference">
+                            <span>面差检测</span>
+                        </label>
+                    </div>
+                
+                    <!-- 第二行 -->
+                    <div class="checkbox-container">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="topSurface">
+                            <span>上表面检测</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="bottomSurface">
+                            <span>下表面检测</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="sideSurface">
+                            <span>侧面检测</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="grayscale">
+                            <span>灰度检测</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="eddyCurrent"> <!-- 新增涡流检测 -->
+                            <span>涡流检测</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="calculateLenses()">
+                <i>🔍</i> 计算匹配CCD设备
+            </button>
+        </div>
+
+        <div class="loading" id="loadingIndicator">
+            <div class="loading-spinner"></div>
+            <p>正在计算匹配结果...</p>
+        </div>
+
+        <div class="card">
+            <h2>推荐CCD设备</h2>
+            <table id="lensTable">
+                <thead>
+                    <tr>
+                        <th>设备号</th>
+                        <th>工位数量</th>
+                        <th>侧面</th>
+                        <th>灰度</th>
+                        <th>端面</th>
+                        <th>涡流检测</th>
+                        <th>匹配程度</th>
+                    </tr>
+                </thead>
+                <tbody id="lensResults">
+                    <!-- 动态生成 -->
+                </tbody>
+            </table>
+            <p class="note">注：点击任意设备行可展开查看详细信息。匹配度表示当前设备与产品检测需求的综合匹配程度。</p>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 全选功能 ====================
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const otherCheckboxes = document.querySelectorAll('.checkbox-container input[type="checkbox"]:not(#selectAll)');
+
+            selectAllCheckbox.addEventListener('change', function () {
+                const isChecked = this.checked;
+                otherCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+
+            otherCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const allChecked = Array.from(otherCheckboxes).every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                });
+            });
+        });
+
+        // ==================== 详细设备信息 ====================
+        const detailedDevices = [
+            {
+                设备号: "E1",
+                厂商: "AJ",
+                CPU: "i7-14700",
+                GPU: "RTX4070",
+                内存: 16,
+                工位: [
+                    { 工位: "CCD1", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "下表面1", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 33.771, 分辨率: "1440×1080", 视野: "48.630×36.473", 相元尺寸: 3.45 },
+                    { 工位: "CCD2", 相机: "MV-CS016-10GM", 镜头: "XF-5MDT018x110-F", 检测项: "平面尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 19.156, 分辨率: "2048×1536", 视野: "39.231×29.424", 相元尺寸: 3.45 },
+                    { 工位: "CCD3", 相机: "MV-CS032-10GM", 镜头: "XF-5MDT018x110-F", 检测项: "厚度尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 19.75, 分辨率: "2048×1536", 视野: "40.448×30.336", 相元尺寸: 3.45 },
+                    { 工位: "CCD4", 相机: "MV-CS032-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "上表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 33.402, 分辨率: "1440×1080", 视野: "48.099×36.074", 相元尺寸: 3.45 },
+                    { 工位: "CCD5", 相机: "虚拟CCD4", 镜头: "", 检测项: "上表面", 光源: "白色平面背光", "单像素精度 (μm)": 33.402, 分辨率: "1440×1080", 视野: "48.099×36.074", 相元尺寸: 3.45 },
+                    { 工位: "CCD6", 相机: "虚拟CCD1", 镜头: "", 检测项: "下表面", 光源: "白色平面背光", "单像素精度 (μm)": 33.771, 分辨率: "1440×1080", 视野: "48.630×36.473", 相元尺寸: 3.45 },
+                    { 工位: "CCD8", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "白色环背光", "单像素精度 (μm)": 29.654, 分辨率: "1440×1080", 视野: "42.702×32.026", 相元尺寸: 3.45 },
+                    { 工位: "CCD9", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 26.458, 分辨率: "1440×1080", 视野: "38.100×28.575", 相元尺寸: 3.45 },
+                    { 工位: "CCD10", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 29.174, 分辨率: "1440×1080", 视野: "42.011×31.508", 相元尺寸: 3.45 },
+                    { 工位: "CCD11", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 29.175, 分辨率: "1440×1080", 视野: "42.012×31.509", 相元尺寸: 3.45 },
+                    { 工位: "CCD12", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "上表面", 光源: "正向双平面白光", "单像素精度 (μm)": 32.571, 分辨率: "1440×1080", 视野: "46.902×35.177", 相元尺寸: 3.45 },
+                    { 工位: "CCD13", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "下表面", 光源: "正向双平面白光", "单像素精度 (μm)": 34.234, 分辨率: "1440×1080", 视野: "49.297×36.973", 相元尺寸: 3.45 },
+                    { 工位: "CCD14", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "灰度检测", 光源: "积分光源", "单像素精度 (μm)": 31.67, 分辨率: "1440×1080", 视野: "45.605×34.204", 相元尺寸: 3.45 },
+                    { 工位: "CCD0", 相机: "", 镜头: "", 检测项: "涡流检测", 光源: "", "单像素精度 (μm)": "", 分辨率: "", 视野: "", 相元尺寸: "" }
+                ]
+            },
+            {
+                设备号: "E2",
+                厂商: "AJ",
+                CPU: "i7-14700",
+                GPU: "RTX4070",
+                内存: 16,
+                工位: [
+                    { 工位: "CCD1", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''", 检测项: "下表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 20.92, 分辨率: "1440×1080", 视野: "30.125×22.594", 相元尺寸: 3.45 },
+                    { 工位: "CCD2", 相机: "MV-CS016-10GM", 镜头: "XF-5MDT018x110-F", 检测项: "平面尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 19.651, 分辨率: "1440×1080", 视野: "28.297×21.223", 相元尺寸: 3.45 },
+                    { 工位: "CCD3", 相机: "MV-CS016-10GM", 镜头: "XF-5MDT018x110-F", 检测项: "厚度尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 18.667, 分辨率: "1440×1080", 视野: "26.880×20.160", 相元尺寸: 3.45 },
+                    { 工位: "CCD4", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''", 检测项: "上表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 21.929, 分辨率: "1440×1080", 视野: "31.578×23.683", 相元尺寸: 3.45 },
+                    { 工位: "CCD5", 相机: "虚拟CCD4", 镜头: "", 检测项: "上表面", 光源: "白色平面背光", "单像素精度 (μm)": 21.929, 分辨率: "1440×1080", 视野: "31.578×23.683", 相元尺寸: 3.45 },
+                    { 工位: "CCD6", 相机: "虚拟CCD1", 镜头: "", 检测项: "下表面", 光源: "白色平面背光", "单像素精度 (μm)": 20.92, 分辨率: "1440×1080", 视野: "30.125×22.594", 相元尺寸: 3.45 },
+                    { 工位: "CCD8", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''+反射镜", 检测项: "侧面", 光源: "白色环背光", "单像素精度 (μm)": 18.45, 分辨率: "1440×1080", 视野: "26.568×19.926", 相元尺寸: 3.45 },
+                    { 工位: "CCD9", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 15.898, 分辨率: "1440×1080", 视野: "22.893×17.170", 相元尺寸: 3.45 },
+                    { 工位: "CCD10", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 18.382, 分辨率: "1440×1080", 视野: "26.470×19.853", 相元尺寸: 3.45 },
+                    { 工位: "CCD11", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 19.685, 分辨率: "1440×1080", 视野: "28.346×21.260", 相元尺寸: 3.45 },
+                    { 工位: "CCD12", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''", 检测项: "上表面", 光源: "正向双平面30度白光", "单像素精度 (μm)": 20.618, 分辨率: "1440×1080", 视野: "29.690×22.267", 相元尺寸: 3.45 },
+                    { 工位: "CCD13", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''", 检测项: "下表面", 光源: "正向双平面白光（90度+30度）", "单像素精度 (μm)": 20.408, 分辨率: "1440×1080", 视野: "29.388×22.041", 相元尺寸: 3.45 },
+                    { 工位: "CCD14", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''", 检测项: "上表面", 光源: "积分光源", "单像素精度 (μm)": 20.202, 分辨率: "1440×1080", 视野: "29.091×21.818", 相元尺寸: 3.45 },
+                    { 工位: "CCD0", 相机: "", 镜头: "", 检测项: "涡流检测", 光源: "", "单像素精度 (μm)": "", 分辨率: "", 视野: "", 相元尺寸: "" }
+                ]
+            },
+            {
+                设备号: "E3",
+                厂商: "AJ",
+                CPU: "i7-14700",
+                GPU: "RTX4070",
+                内存: 16,
+                工位: [
+                    { 工位: "CCD1", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''", 检测项: "下表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 21.321, 分辨率: "1440×1080", 视野: "30.702×23.027", 相元尺寸: 3.45 },
+                    { 工位: "CCD2", 相机: "MV-CS016-10GM", 镜头: "XF-5MDT018x110-F", 检测项: "平面尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 19.39, 分辨率: "1440×1080", 视野: "27.922×20.941", 相元尺寸: 3.45 },
+                    { 工位: "CCD3", 相机: "MV-CS016-10GM", 镜头: "XF-5MDT018x110-F", 检测项: "厚度尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 19.6, 分辨率: "1440×1080", 视野: "28.224×21.168", 相元尺寸: 3.45 },
+                    { 工位: "CCD4", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''", 检测项: "上表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 21.141, 分辨率: "1440×1080", 视野: "30.443×22.832", 相元尺寸: 3.45 },
+                    { 工位: "CCD5", 相机: "虚拟CCD4", 镜头: "", 检测项: "上表面", 光源: "白色平面背光", "单像素精度 (μm)": 21.141, 分辨率: "1440×1080", 视野: "30.443×22.832", 相元尺寸: 3.45 },
+                    { 工位: "CCD6", 相机: "虚拟CCD1", 镜头: "", 检测项: "下表面", 光源: "白色平面背光", "单像素精度 (μm)": 21.321, 分辨率: "1440×1080", 视野: "30.702×23.027", 相元尺寸: 3.45 },
+                    { 工位: "CCD8", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "白色环背光", "单像素精度 (μm)": 19.083, 分辨率: "1440×1080", 视野: "27.480×20.610", 相元尺寸: 3.45 },
+                    { 工位: "CCD9", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 17.699, 分辨率: "1440×1080", 视野: "25.487×19.115", 相元尺寸: 3.45 },
+                    { 工位: "CCD10", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 19.92, 分辨率: "1440×1080", 视野: "28.685×21.514", 相元尺寸: 3.45 },
+                    { 工位: "CCD11", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 20.325, 分辨率: "1440×1080", 视野: "29.268×21.951", 相元尺寸: 3.45 },
+                    { 工位: "CCD12", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''", 检测项: "上表面", 光源: "正向双平面30度白光", "单像素精度 (μm)": 21.276, 分辨率: "1440×1080", 视野: "30.637×22.978", 相元尺寸: 3.45 },
+                    { 工位: "CCD13", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:1.8 2/3''", 检测项: "下表面", 光源: "正向双平面白光", "单像素精度 (μm)": 21.413, 分辨率: "1440×1080", 视野: "30.835×23.126", 相元尺寸: 3.45 },
+                    { 工位: "CCD14", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "上表面", 光源: "积分光源", "单像素精度 (μm)": 22.026, 分辨率: "1440×1080", 视野: "31.717×23.788", 相元尺寸: 3.45 },
+                    { 工位: "CCD0", 相机: "", 镜头: "", 检测项: "涡流检测", 光源: "", "单像素精度 (μm)": "", 分辨率: "", 视野: "", 相元尺寸: "" }
+                ]
+            },
+            {
+                设备号: "E4",
+                厂商: "AJ",
+                CPU: "i7-14700",
+                GPU: "RTX4070",
+                内存: 16,
+                工位: [
+                    { 工位: "CCD1", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "下表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 21.834, 分辨率: "1440×1080", 视野: "31.441×23.581", 相元尺寸: 3.45 },
+                    { 工位: "CCD2", 相机: "MV-CS016-10GM", 镜头: "XF-5MDT018x110-F", 检测项: "平面尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 19.298, 分辨率: "1440×1080", 视野: "27.789×20.842", 相元尺寸: 3.45 },
+                    { 工位: "CCD3", 相机: "MV-CS016-10GM", 镜头: "XF-5MDT018x110-F", 检测项: "厚度尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 19.4, 分辨率: "1440×1080", 视野: "27.936×20.952", 相元尺寸: 3.45 },
+                    { 工位: "CCD4", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "上表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 21.9298, 分辨率: "1440×1080", 视野: "31.579×23.684", 相元尺寸: 3.45 },
+                    { 工位: "CCD5", 相机: "虚拟CCD4", 镜头: "", 检测项: "上表面", 光源: "白色平面背光", "单像素精度 (μm)": 21.9298, 分辨率: "1440×1080", 视野: "31.579×23.684", 相元尺寸: 3.45 },
+                    { 工位: "CCD6", 相机: "虚拟CCD1", 镜头: "", 检测项: "下表面", 光源: "白色平面背光", "单像素精度 (μm)": 21.834, 分辨率: "1440×1080", 视野: "31.441×23.581", 相元尺寸: 3.45 },
+                    { 工位: "CCD7", 相机: "MV-CS016-10GM", 镜头: "远心镜头", 检测项: "平面尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 3.45, 分辨率: "1440×1080", 视野: "4.968×3.726", 相元尺寸: 3.45 },
+                    { 工位: "CCD8", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "白色环背光", "单像素精度 (μm)": 18.7969, 分辨率: "1440×1080", 视野: "27.068×20.301", 相元尺寸: 3.45 },
+                    { 工位: "CCD9", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 17.1526, 分辨率: "1440×1080", 视野: "24.700×18.525", 相元尺寸: 3.45 },
+                    { 工位: "CCD10", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 19.5312, 分辨率: "1440×1080", 视野: "28.125×21.094", 相元尺寸: 3.45 },
+                    { 工位: "CCD11", 相机: "MV-CS016-10GC", 镜头: "FA 35mm 1:2.8 1/1.7''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 20.0803, 分辨率: "1440×1080", 视野: "28.916×21.687", 相元尺寸: 3.45 },
+                    { 工位: "CCD12", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "上表面", 光源: "正向双平面白光", "单像素精度 (μm)": 19.646, 分辨率: "1440×1080", 视野: "28.290×21.218", 相元尺寸: 3.45 },
+                    { 工位: "CCD13", 相机: "MV-CS016-10GC", 镜头: "FA 25mm 1:2.8 1/1.7''", 检测项: "下表面", 光源: "正向双平面白光", "单像素精度 (μm)": 19.685, 分辨率: "1440×1080", 视野: "28.346×21.260", 相元尺寸: 3.45 }
+                ]
+            },
+            {
+                设备号: "E5",
+                厂商: "AJ",
+                CPU: "i7-14700",
+                GPU: "RTX4070",
+                内存: 16,
+                工位: [
+                    { 工位: "CCD1", 相机: "MV-CS016-10GC", 镜头: "FA 50mm 1:2.8 1/1''", 检测项: "下表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 7.792, 分辨率: "1440×1080", 视野: "11.220×8.415", 相元尺寸: 3.45 },
+                    { 工位: "CCD2", 相机: "MV-CS016-10GM", 镜头: "XF-10MDT05X110-1C-VI V5", 检测项: "平面尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 6.905, 分辨率: "1440×1080", 视野: "9.943×7.457", 相元尺寸: 3.45 },
+                    { 工位: "CCD3", 相机: "MV-CS016-10GM", 镜头: "XF-10MDT05X110-1C-VI V5", 检测项: "厚度尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 6.957, 分辨率: "1440×1080", 视野: "10.018×7.514", 相元尺寸: 3.45 },
+                    { 工位: "CCD4", 相机: "MV-CS016-10GC", 镜头: "FA 50mm 1:2.8 1/1''", 检测项: "上表面", 光源: "白色同轴光+白色环光+白色平面背光", "单像素精度 (μm)": 6.857, 分辨率: "1440×1080", 视野: "9.874×7.406", 相元尺寸: 3.45 },
+                    { 工位: "CCD5", 相机: "虚拟CCD4", 镜头: "", 检测项: "上表面", 光源: "白色平面背光", "单像素精度 (μm)": 6.857, 分辨率: "1440×1080", 视野: "9.874×7.406", 相元尺寸: 3.45 },
+                    { 工位: "CCD6", 相机: "虚拟CCD1", 镜头: "", 检测项: "下表面", 光源: "白色平面背光", "单像素精度 (μm)": 7.792, 分辨率: "1440×1080", 视野: "11.220×8.415", 相元尺寸: 3.45 },
+                    { 工位: "CCD7", 相机: "MV-CS016-10GM", 镜头: "远心镜头", 检测项: "平面尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 3.45, 分辨率: "1440×1080", 视野: "4.968×3.726", 相元尺寸: 3.45 },
+                    { 工位: "CCD8", 相机: "MV-CS016-10GC", 镜头: "FA 50mm 1:2.8 1/1''+反射镜", 检测项: "侧面", 光源: "白色环背光", "单像素精度 (μm)": 6.254, 分辨率: "1440×1080", 视野: "9.006×6.754", 相元尺寸: 3.45 },
+                    { 工位: "CCD9", 相机: "MV-CS016-10GC", 镜头: "FA 50mm 1:2.8 1/1''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 5.542, 分辨率: "1440×1080", 视野: "7.980×5.985", 相元尺寸: 3.45 },
+                    { 工位: "CCD10", 相机: "MV-CS016-10GC", 镜头: "FA 50mm 1:2.8 1/1''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 5.33, 分辨率: "1440×1080", 视野: "7.675×5.756", 相元尺寸: 3.45 },
+                    { 工位: "CCD11", 相机: "MV-CS016-10GC", 镜头: "FA 50mm 1:2.8 1/1''+反射镜", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 6.112, 分辨率: "1440×1080", 视野: "8.801×6.601", 相元尺寸: 3.45 },
+                    { 工位: "CCD12", 相机: "MV-CS016-10GC", 镜头: "FA 50mm 1:2.8 1/1''", 检测项: "上表面", 光源: "正向双平面白光", "单像素精度 (μm)": 7.384, 分辨率: "1440×1080", 视野: "10.633×7.975", 相元尺寸: 3.45 },
+                    { 工位: "CCD13", 相机: "MV-CS016-10GC", 镜头: "FA 50mm 1:2.8 1/1''", 检测项: "下表面", 光源: "正向双平面白光", "单像素精度 (μm)": 7.228, 分辨率: "1440×1080", 视野: "10.408×7.806", 相元尺寸: 3.45 }
+                ]
+            },
+            {
+                设备号: "E6",
+                厂商: "AJ",
+                CPU: "i7-13700",
+                GPU: "RTX3060",
+                内存: 16,
+                工位: [
+                    { 工位: "CCD1", 相机: "MV-CS016-10GM", 镜头: "FA 50mm 1:1.8 2/3''+5mm接圈", 检测项: "下表面", 光源: "白色同轴光+白色平面背光", "单像素精度 (μm)": 21.0, 分辨率: "1440×1080", 视野: "30.240×22.680", 相元尺寸: 3.45 },
+                    { 工位: "CCD2", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "平面尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 9.008, 分辨率: "1440×1080", 视野: "12.972×9.729", 相元尺寸: 3.45 },
+                    { 工位: "CCD3", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "厚度尺寸", 光源: "白色平面背光", "单像素精度 (μm)": 24.186, 分辨率: "1440×1080", 视野: "34.828×26.121", 相元尺寸: 3.45 },
+                    { 工位: "CCD4", 相机: "MV-CS016-10GM", 镜头: "FA 50mm 1:1.8 2/3''+5mm接圈", 检测项: "上表面", 光源: "白色同轴光+白色平面背光", "单像素精度 (μm)": 22.8, 分辨率: "1440×1080", 视野: "32.832×24.624", 相元尺寸: 3.45 },
+                    { 工位: "CCD7", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "", 光源: "", "单像素精度 (μm)": 0.0, 分辨率: "", 视野: "", 相元尺寸: 0.0 },
+                    { 工位: "CCD8", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "侧面", 光源: "白色环背光", "单像素精度 (μm)": 14.831, 分辨率: "1440×1080", 视野: "21.357×16.017", 相元尺寸: 3.45 },
+                    { 工位: "CCD9", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 15.8121, 分辨率: "1440×1080", 视野: "22.769×17.077", 相元尺寸: 3.45 },
+                    { 工位: "CCD10", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 27.47, 分辨率: "1440×1080", 视野: "39.557×29.668", 相元尺寸: 3.45 },
+                    { 工位: "CCD11", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "侧面", 光源: "", "单像素精度 (μm)": 27.47, 分辨率: "1440×1080", 视野: "39.557×29.668", 相元尺寸: 3.45 },
+                    { 工位: "CCD12", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "", 光源: "", "单像素精度 (μm)": 12.8, 分辨率: "1440×1080", 视野: "18.432×13.824", 相元尺寸: 3.45 },
+                    { 工位: "CCD13", 相机: "MV-CS016-10GM", 镜头: "", 检测项: "", 光源: "", "单像素精度 (μm)": 12.7, 分辨率: "1440×1080", 视野: "18.288×13.716", 相元尺寸: 3.45 }
+                ]
+            }
+        ];
+
+        // ==================== 主计算函数 ====================
+        function calculateLenses() {
+            // 显示加载指示器
+            document.getElementById("loadingIndicator").style.display = "block";
+            
+            // 使用setTimeout让UI有机会更新
+            setTimeout(() => {
+                try {
+                    const length = parseFloat(document.getElementById("productLength").value);
+                    const width = parseFloat(document.getElementById("productWidth").value);
+                    const thickness = parseFloat(document.getElementById("productThickness").value);
+
+                    const flatDim = document.getElementById("flatDimension").checked;
+                    const thickDim = document.getElementById("thicknessDimension").checked;
+                    const topSurf = document.getElementById("topSurface").checked;
+                    const botSurf = document.getElementById("bottomSurface").checked;
+                    const sideSurf = document.getElementById("sideSurface").checked;
+                    const gray = document.getElementById("grayscale").checked;
+                    const endFace = document.getElementById("endFace").checked;
+                    const faceDiff = document.getElementById("faceDifference").checked;
+                    const eddyCurrent = document.getElementById("eddyCurrent").checked; // 涡流检测
+
+                    const checkedItems = [flatDim, thickDim, topSurf, botSurf, sideSurf, gray, endFace, faceDiff, eddyCurrent];
+                    const selectedCount = checkedItems.filter(Boolean).length;
+
+                    let results = [];
+
+                    // 0. 无任何勾选
+                    if (selectedCount === 0) {
+                        results = detailedDevices.map(d => ({
+                            deviceID: d.设备号,
+                            matchScore: 100,
+                            precision: 0,
+                            flatPrecision: 0,
+                            thicknessPrecision: 0,
+                            topPrecision: 0,
+                            bottomPrecision: 0,
+                            sidePrecision: 0,
+                            eddyCurrentPrecision: 0
+                        })).sort((a, b) => a.deviceID.localeCompare(b.deviceID));
+                    }
+                    // 1. 只勾选"涡流检测"
+                    else if (selectedCount === 1 && eddyCurrent) {
+                        results = filterByEddyCurrent();
+                    }
+                    // 2. 只勾选"平面尺寸"
+                    else if (selectedCount === 1 && flatDim) {
+                        results = filterByFlatDimension(length, width);
+                    }
+                    // 3. 只勾选"厚度尺寸"
+                    else if (selectedCount === 1 && thickDim) {
+                        results = filterByThickness(thickness);
+                    }
+                    // 4. 只勾选"上/下/侧/灰度"中的一个
+                    else if (selectedCount === 1 && (topSurf || botSurf || sideSurf || gray)) {
+                        const item = topSurf ? "上表面" : botSurf ? "下表面" : sideSurf ? "侧面" : "灰度";
+                        results = filterBySurface(item, length, width);
+                    }
+                    // 5. 只勾选"端面"
+                    else if (selectedCount === 1 && endFace) {
+                        results = filterByEndFace(thickness);
+                    }
+                    // 6. 只勾选"面差"
+                    else if (selectedCount === 1 && faceDiff) {
+                        results = filterByFaceDifference(width);
+                    }
+                    // 7-14. 多个检测项的组合（包括涡流检测）
+                    else if (selectedCount > 1) {
+                        results = filterByMultipleCriteria(
+                            length, width, thickness,
+                            flatDim, thickDim, topSurf, botSurf, sideSurf, gray, endFace, faceDiff, eddyCurrent
+                        );
+                    }
+                    // 其他情况
+                    else {
+                        alert("请选择检测项进行筛选，或不勾选以查看所有设备。");
+                        document.getElementById("loadingIndicator").style.display = "none";
+                        return;
+                    }
+
+                    if (results.length === 0) {
+                        alert("没有找到符合的设备");
+                        document.getElementById("lensResults").innerHTML = "";
+                        document.getElementById("loadingIndicator").style.display = "none";
+                        return;
+                    }
+
+                    // 计算匹配度
+                    if (selectedCount > 0) {
+                        const precisions = results.map(r => r.precision);
+                        const minPrec = Math.min(...precisions);
+                        const maxPrec = Math.max(...precisions);
+                        const range = maxPrec - minPrec || 1;
+
+                        results.forEach(r => {
+                            r.matchScore = (-0.7 * (r.precision / range)) + (1 + 0.7 * (minPrec / range));
+                            r.matchScore = Math.max(0, Math.min(100, r.matchScore * 100)).toFixed(1);
+                        });
+                    }
+
+                    displayResults(results);
+                } catch (error) {
+                    console.error("计算过程中出错:", error);
+                    alert("计算过程中发生错误，请检查输入数据");
+                } finally {
+                    // 隐藏加载指示器
+                    document.getElementById("loadingIndicator").style.display = "none";
+                }
+            }, 100);
+        }
+
+        // ==================== 辅助函数 ====================
+        function parseFOV(fovStr) {
+            if (!fovStr) return null;
+            const [w, h] = fovStr.split('×').map(parseFloat);
+            return isNaN(w) || isNaN(h) ? null : { w, h };
+        }
+
+        function getPrecisionForItem(device, itemName) {
+            const ccds = device.工位.filter(w => w.检测项.includes(itemName));
+            if (ccds.length === 0) return Infinity;
+            return Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+        }
+
+        function hasItem(device, itemName) {
+            return device.工位.some(w => w.检测项.includes(itemName));
+        }
+
+        // ==================== 涡流检测筛选函数 ====================
+        function filterByEddyCurrent() {
+            const results = [];
+            detailedDevices.forEach(d => {
+                const ccds = d.工位.filter(w => w.检测项.includes("涡流检测"));
+                if (ccds.length === 0) return;
+                
+                // 涡流检测不需要视野检查，只要有该检测项即可
+                results.push({
+                    deviceID: d.设备号,
+                    precision: 0, // 涡流检测没有像素精度概念
+                    eddyCurrentPrecision: 0
+                });
+            });
+            return results.sort((a, b) => a.deviceID.localeCompare(b.deviceID));
+        }
+
+        // ==================== 其他筛选函数 ====================
+        function filterByFlatDimension(length, width) {
+            const results = [];
+            detailedDevices.forEach(d => {
+                const ccd = d.工位.find(w => w.检测项 === "平面尺寸");
+                if (!ccd) return;
+                const fov = parseFOV(ccd.视野);
+                if (!fov || length > fov.w || width > fov.h) return;
+                results.push({
+                    deviceID: d.设备号,
+                    precision: ccd["单像素精度 (μm)"],
+                    flatPrecision: ccd["单像素精度 (μm)"],
+                    hFOV: fov.w,
+                    vFOV: fov.h
+                });
+            });
+            return results.sort((a, b) => a.precision - b.precision);
+        }
+
+        function filterByThickness(thickness) {
+            const results = [];
+            detailedDevices.forEach(d => {
+                const ccd = d.工位.find(w => ["厚度", "厚度尺寸"].includes(w.检测项));
+                if (!ccd) return;
+                const fov = parseFOV(ccd.视野);
+                if (!fov || thickness > fov.h) return;
+                results.push({
+                    deviceID: d.设备号,
+                    precision: ccd["单像素精度 (μm)"],
+                    thicknessPrecision: ccd["单像素精度 (μm)"],
+                    vFOV: fov.h
+                });
+            });
+            return results.sort((a, b) => a.precision - b.precision);
+        }
+
+        function filterBySurface(item, length, width) {
+            const results = [];
+            detailedDevices.forEach(d => {
+                const ccds = d.工位.filter(w => w.检测项.includes(item === "灰度" ? "灰度" : item));
+                if (ccds.length === 0) return;
+                
+                const valid = ccds.some(ccd => {
+                    const fov = parseFOV(ccd.视野);
+                    return fov && length <= fov.w && width <= fov.h;
+                });
+                
+                if (!valid) return;
+                
+                const minPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                results.push({
+                    deviceID: d.设备号,
+                    precision: minPrecision,
+                    [item === "上表面" ? "topPrecision" : 
+                     item === "下表面" ? "bottomPrecision" : 
+                     item === "侧面" ? "sidePrecision" : "grayPrecision"]: minPrecision
+                });
+            });
+            return results.sort((a, b) => a.precision - b.precision);
+        }
+
+        function filterByEndFace(thickness) {
+            const results = [];
+            detailedDevices.forEach(d => {
+                const ccds = d.工位.filter(w => w.检测项.includes("端面"));
+                if (ccds.length === 0) return;
+                
+                const minFOV = Math.min(...ccds.map(ccd => {
+                    const fov = parseFOV(ccd.视野);
+                    return fov ? Math.min(fov.w, fov.h) : Infinity;
+                }));
+                
+                if (minFOV <= thickness) return;
+                
+                const minPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                results.push({
+                    deviceID: d.设备号,
+                    precision: minPrecision,
+                    endFacePrecision: minPrecision
+                });
+            });
+            return results.sort((a, b) => a.precision - b.precision);
+        }
+
+        function filterByFaceDifference(width) {
+            const results = [];
+            detailedDevices.forEach(d => {
+                const ccds = d.工位.filter(w => w.检测项.includes("面差"));
+                if (ccds.length === 0) return;
+                
+                const minFOV = Math.min(...ccds.map(ccd => {
+                    const fov = parseFOV(ccd.视野);
+                    return fov ? Math.min(fov.w, fov.h) : Infinity;
+                }));
+                
+                if (minFOV <= width) return;
+                
+                const minPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                results.push({
+                    deviceID: d.设备号,
+                    precision: minPrecision,
+                    faceDiffPrecision: minPrecision
+                });
+            });
+            return results.sort((a, b) => a.precision - b.precision);
+        }
+
+        // ==================== 多条件筛选函数 ====================
+        function filterByMultipleCriteria(length, width, thickness, flatDim, thickDim, topSurf, botSurf, sideSurf, gray, endFace, faceDiff, eddyCurrent) {
+            const results = [];
+            
+            detailedDevices.forEach(d => {
+                let isValid = true;
+                let precisionSum = 0;
+                let precisionCount = 0;
+                const result = {
+                    deviceID: d.设备号,
+                    flatPrecision: Infinity,
+                    thicknessPrecision: Infinity,
+                    topPrecision: Infinity,
+                    bottomPrecision: Infinity,
+                    sidePrecision: Infinity,
+                    grayPrecision: Infinity,
+                    endFacePrecision: Infinity,
+                    faceDiffPrecision: Infinity,
+                    eddyCurrentPrecision: Infinity
+                };
+                
+                // 检查涡流检测
+                if (eddyCurrent) {
+                    const ccds = d.工位.filter(w => w.检测项.includes("涡流检测"));
+                    if (ccds.length === 0) {
+                        isValid = false;
+                    } else {
+                        result.eddyCurrentPrecision = 0;
+                        // 涡流检测不参与精度计算，只作为必要条件
+                    }
+                }
+                
+                // 检查平面尺寸
+                if (isValid && flatDim) {
+                    const ccd = d.工位.find(w => w.检测项 === "平面尺寸");
+                    if (!ccd) {
+                        isValid = false;
+                    } else {
+                        const fov = parseFOV(ccd.视野);
+                        if (!fov || length > fov.w || width > fov.h) {
+                            isValid = false;
+                        } else {
+                            result.flatPrecision = ccd["单像素精度 (μm)"];
+                            precisionSum += result.flatPrecision;
+                            precisionCount++;
+                        }
+                    }
+                }
+                
+                // 检查厚度尺寸
+                if (isValid && thickDim) {
+                    const ccd = d.工位.find(w => ["厚度", "厚度尺寸"].includes(w.检测项));
+                    if (!ccd) {
+                        isValid = false;
+                    } else {
+                        const fov = parseFOV(ccd.视野);
+                        if (!fov || thickness > fov.h) {
+                            isValid = false;
+                        } else {
+                            result.thicknessPrecision = ccd["单像素精度 (μm)"];
+                            precisionSum += result.thicknessPrecision;
+                            precisionCount++;
+                        }
+                    }
+                }
+                
+                // 检查上表面
+                if (isValid && topSurf) {
+                    const ccds = d.工位.filter(w => w.检测项.includes("上表面"));
+                    if (ccds.length === 0) {
+                        isValid = false;
+                    } else {
+                        const validCcd = ccds.find(ccd => {
+                            const fov = parseFOV(ccd.视野);
+                            return fov && length <= fov.w && width <= fov.h;
+                        });
+                        if (!validCcd) {
+                            isValid = false;
+                        } else {
+                            result.topPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                            precisionSum += result.topPrecision;
+                            precisionCount++;
+                        }
+                    }
+                }
+                
+                // 检查下表面
+                if (isValid && botSurf) {
+                    const ccds = d.工位.filter(w => w.检测项.includes("下表面"));
+                    if (ccds.length === 0) {
+                        isValid = false;
+                    } else {
+                        const validCcd = ccds.find(ccd => {
+                            const fov = parseFOV(ccd.视野);
+                            return fov && length <= fov.w && width <= fov.h;
+                        });
+                        if (!validCcd) {
+                            isValid = false;
+                        } else {
+                            result.bottomPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                            precisionSum += result.bottomPrecision;
+                            precisionCount++;
+                        }
+                    }
+                }
+                
+                // 检查侧面
+                if (isValid && sideSurf) {
+                    const ccds = d.工位.filter(w => w.检测项.includes("侧面"));
+                    if (ccds.length === 0) {
+                        isValid = false;
+                    } else {
+                        const validCcd = ccds.find(ccd => {
+                            const fov = parseFOV(ccd.视野);
+                            return fov && length <= fov.w && width <= fov.h;
+                        });
+                        if (!validCcd) {
+                            isValid = false;
+                        } else {
+                            result.sidePrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                            precisionSum += result.sidePrecision;
+                            precisionCount++;
+                        }
+                    }
+                }
+                
+                // 检查灰度
+                if (isValid && gray) {
+                    const ccds = d.工位.filter(w => w.检测项.includes("灰度"));
+                    if (ccds.length === 0) {
+                        isValid = false;
+                    } else {
+                        const validCcd = ccds.find(ccd => {
+                            const fov = parseFOV(ccd.视野);
+                            return fov && length <= fov.w && width <= fov.h;
+                        });
+                        if (!validCcd) {
+                            isValid = false;
+                        } else {
+                            result.grayPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                            precisionSum += result.grayPrecision;
+                            precisionCount++;
+                        }
+                    }
+                }
+                
+                // 检查端面
+                if (isValid && endFace) {
+                    const ccds = d.工位.filter(w => w.检测项.includes("端面"));
+                    if (ccds.length === 0) {
+                        isValid = false;
+                    } else {
+                        const minFOV = Math.min(...ccds.map(ccd => {
+                            const fov = parseFOV(ccd.视野);
+                            return fov ? Math.min(fov.w, fov.h) : Infinity;
+                        }));
+                        if (minFOV <= thickness) {
+                            isValid = false;
+                        } else {
+                            result.endFacePrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                            precisionSum += result.endFacePrecision;
+                            precisionCount++;
+                        }
+                    }
+                }
+                
+                // 检查面差
+                if (isValid && faceDiff) {
+                    const ccds = d.工位.filter(w => w.检测项.includes("面差"));
+                    if (ccds.length === 0) {
+                        isValid = false;
+                    } else {
+                        const minFOV = Math.min(...ccds.map(ccd => {
+                            const fov = parseFOV(ccd.视野);
+                            return fov ? Math.min(fov.w, fov.h) : Infinity;
+                        }));
+                        if (minFOV <= width) {
+                            isValid = false;
+                        } else {
+                            result.faceDiffPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                            precisionSum += result.faceDiffPrecision;
+                            precisionCount++;
+                        }
+                    }
+                }
+                
+                if (isValid) {
+                    // 如果只有涡流检测，设置一个默认精度
+                    if (precisionCount === 0 && eddyCurrent) {
+                        result.precision = 0;
+                    } else {
+                        result.precision = precisionSum / precisionCount;
+                    }
+                    results.push(result);
+                }
+            });
+            
+            // 排序逻辑
+            return results.sort((a, b) => {
+                // 优先按平面尺寸和厚度尺寸精度排序
+                if (a.flatPrecision !== b.flatPrecision) {
+                    return a.flatPrecision - b.flatPrecision;
+                }
+                if (a.thicknessPrecision !== b.thicknessPrecision) {
+                    return a.thicknessPrecision - b.thicknessPrecision;
+                }
+                
+                // 然后按上表面和下表面精度排序
+                if (a.topPrecision !== b.topPrecision) {
+                    return a.topPrecision - b.topPrecision;
+                }
+                if (a.bottomPrecision !== b.bottomPrecision) {
+                    return a.bottomPrecision - b.bottomPrecision;
+                }
+                
+                // 最后按侧面检测精度排序
+                return a.sidePrecision - b.sidePrecision;
+            });
+        }
+
+        // ==================== 结果显示 ====================
+        function displayResults(results) {
+            const tableBody = document.getElementById("lensResults");
+            tableBody.innerHTML = "";
+
+            results.forEach((result, index) => {
+                const deviceData = detailedDevices.find(d => d.设备号 === result.deviceID);
+                if (!deviceData) return;
+
+                const stationCount = deviceData.工位.length;
+                const hasSide = deviceData.工位.some(ccd => ccd.检测项.includes("侧面")) ? "有" : "无";
+                const hasGrayscale = deviceData.工位.some(ccd => ccd.检测项.includes("灰度")) ? "有" : "无";
+                const hasEndFace = deviceData.工位.some(ccd => ccd.检测项.includes("端面")) ? "有" : "无";
+                const hasEddyCurrent = deviceData.工位.some(ccd => ccd.检测项.includes("涡流检测")) ? "有" : "无";
+
+                const matchClass = result.matchScore >= 70 ? "match-high" :
+                                   result.matchScore >= 50 ? "match-medium" : "match-low";
+
+                const summaryRow = document.createElement("tr");
+                summaryRow.classList.add("summary-row");
+                if (index === 0) summaryRow.classList.add("recommended");
+                summaryRow.setAttribute("data-expanded", "false");
+                summaryRow.style.cursor = "pointer";
+
+                summaryRow.innerHTML = `
+                    <td><strong>${result.deviceID}</strong></td>
+                    <td>${stationCount}</td>
+                    <td>${hasSide}</td>
+                    <td>${hasGrayscale}</td>
+                    <td>${hasEndFace}</td>
+                    <td>${hasEddyCurrent}</td>
+                    <td><span class="match-score ${matchClass}">${result.matchScore}%</span></td>
+                `;
+
+                const detailRow = document.createElement("tr");
+                detailRow.classList.add("detail-row");
+                detailRow.innerHTML = `<td colspan="7"></td>`;
+                detailRow.style.display = "none";
+
+                const detailContent = detailRow.querySelector("td");
+                const detailTable = createDetailTable(deviceData);
+                detailContent.appendChild(detailTable);
+
+                summaryRow.addEventListener("click", function () {
+                    const isExpanded = this.getAttribute("data-expanded") === "true";
+                    document.querySelectorAll(".detail-row").forEach(row => row.style.display = "none");
+                    document.querySelectorAll(".summary-row").forEach(row => row.setAttribute("data-expanded", "false"));
+                    if (!isExpanded) {
+                        detailRow.style.display = "table-row";
+                        this.setAttribute("data-expanded", "true");
+                    }
+                });
+
+                tableBody.appendChild(summaryRow);
+                tableBody.appendChild(detailRow);
+            });
+        }
+
+        function createDetailTable(device) {
+            const table = document.createElement("table");
+            table.className = "detail-table";
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>设备号</th><th>厂商</th><th>CPU</th><th>GPU</th><th>内存(GB)</th>
+                        <th>工位</th><th>相机</th><th>镜头</th><th>检测项</th><th>光源</th>
+                        <th>单像素精度 (μm)</th><th>分辨率</th>
+                        <th>视野(mm)</th><th>相元尺寸(μm)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector("tbody");
+
+            device.工位.forEach((ccd, i) => {
+                const row = document.createElement("tr");
+                row.className = i === 0 ? "device-header" : "ccd-row";
+
+                let cameraLensCell = `<td>${ccd.相机 || ''}</td><td>${ccd.镜头 || ''}</td>`;
+                let lightCell = `<td>${ccd.光源 || ''}</td>`;
+
+                if (ccd.工位 === "CCD5" || ccd.工位 === "CCD6") {
+                    cameraLensCell = `<td colspan="2" style="text-align: center;">${ccd.相机 || ''}</td>`;
+                }
+
+                row.innerHTML = `
+                    ${i === 0 ? `
+                    <td rowspan="${device.工位.length}">${device.设备号}</td>
+                    <td rowspan="${device.工位.length}">${device.厂商}</td>
+                    <td rowspan="${device.工位.length}">${device.CPU}</td>
+                    <td rowspan="${device.工位.length}">${device.GPU}</td>
+                    <td rowspan="${device.工位.length}">${device.内存}</td>` : ''}
+                    <td>${ccd.工位}</td>
+                    ${cameraLensCell}
+                    <td>${ccd.检测项 || ''}</td>
+                    ${lightCell}
+                    <td>${ccd["单像素精度 (μm)"] || ''}</td>
+                    <td>${ccd.分辨率 || ''}</td>
+                    <td>${ccd.视野 || ''}</td>
+                    <td>${ccd.相元尺寸 || ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            return table;
+        }
+
+        window.onload = () => {
+            // 可选：默认不触发计算
+        };
+    </script>
+</body>
+</html>
