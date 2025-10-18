@@ -909,225 +909,339 @@
             return results.sort((a, b) => a.precision - b.precision);
         }
 
-        // ==================== 多条件筛选函数 ====================
-        function filterByMultipleCriteria(length, width, thickness, flatDim, thickDim, topSurf, botSurf, sideSurf, gray, endFace, faceDiff, eddyCurrent) {
-            const results = [];
-            
-            detailedDevices.forEach(d => {
-                let isValid = true;
-                let precisionSum = 0;
-                let precisionCount = 0;
-                const result = {
-                    deviceID: d.设备号,
-                    flatPrecision: Infinity,
-                    thicknessPrecision: Infinity,
-                    topPrecision: Infinity,
-                    bottomPrecision: Infinity,
-                    sidePrecision: Infinity,
-                    grayPrecision: Infinity,
-                    endFacePrecision: Infinity,
-                    faceDiffPrecision: Infinity,
-                    eddyCurrentPrecision: Infinity
-                };
-                
-                // 检查涡流检测
-                if (eddyCurrent) {
-                    const ccds = d.工位.filter(w => w.检测项.includes("涡流检测"));
-                    if (ccds.length === 0) {
-                        isValid = false;
-                    } else {
-                        result.eddyCurrentPrecision = 0;
-                        // 涡流检测不参与精度计算，只作为必要条件
-                    }
-                }
-                
-                // 检查平面尺寸
-                if (isValid && flatDim) {
-                    const ccd = d.工位.find(w => w.检测项 === "平面尺寸");
-                    if (!ccd) {
-                        isValid = false;
-                    } else {
-                        const fov = parseFOV(ccd.视野);
-                        if (!fov || length > fov.w || width > fov.h) {
-                            isValid = false;
-                        } else {
-                            result.flatPrecision = ccd["单像素精度 (μm)"];
-                            precisionSum += result.flatPrecision;
-                            precisionCount++;
-                        }
-                    }
-                }
-                
-                // 检查厚度尺寸
-                if (isValid && thickDim) {
-                    const ccd = d.工位.find(w => ["厚度", "厚度尺寸"].includes(w.检测项));
-                    if (!ccd) {
-                        isValid = false;
-                    } else {
-                        const fov = parseFOV(ccd.视野);
-                        if (!fov || thickness > fov.h) {
-                            isValid = false;
-                        } else {
-                            result.thicknessPrecision = ccd["单像素精度 (μm)"];
-                            precisionSum += result.thicknessPrecision;
-                            precisionCount++;
-                        }
-                    }
-                }
-                
-                // 检查上表面
-                if (isValid && topSurf) {
-                    const ccds = d.工位.filter(w => w.检测项.includes("上表面"));
-                    if (ccds.length === 0) {
-                        isValid = false;
-                    } else {
-                        const validCcd = ccds.find(ccd => {
-                            const fov = parseFOV(ccd.视野);
-                            return fov && length <= fov.w && width <= fov.h;
-                        });
-                        if (!validCcd) {
-                            isValid = false;
-                        } else {
-                            result.topPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
-                            precisionSum += result.topPrecision;
-                            precisionCount++;
-                        }
-                    }
-                }
-                
-                // 检查下表面
-                if (isValid && botSurf) {
-                    const ccds = d.工位.filter(w => w.检测项.includes("下表面"));
-                    if (ccds.length === 0) {
-                        isValid = false;
-                    } else {
-                        const validCcd = ccds.find(ccd => {
-                            const fov = parseFOV(ccd.视野);
-                            return fov && length <= fov.w && width <= fov.h;
-                        });
-                        if (!validCcd) {
-                            isValid = false;
-                        } else {
-                            result.bottomPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
-                            precisionSum += result.bottomPrecision;
-                            precisionCount++;
-                        }
-                    }
-                }
-                
-                // 检查侧面
-                if (isValid && sideSurf) {
-                    const ccds = d.工位.filter(w => w.检测项.includes("侧面"));
-                    if (ccds.length === 0) {
-                        isValid = false;
-                    } else {
-                        const validCcd = ccds.find(ccd => {
-                            const fov = parseFOV(ccd.视野);
-                            return fov && length <= fov.w && width <= fov.h;
-                        });
-                        if (!validCcd) {
-                            isValid = false;
-                        } else {
-                            result.sidePrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
-                            precisionSum += result.sidePrecision;
-                            precisionCount++;
-                        }
-                    }
-                }
-                
-                // 检查灰度
-                if (isValid && gray) {
-                    const ccds = d.工位.filter(w => w.检测项.includes("灰度"));
-                    if (ccds.length === 0) {
-                        isValid = false;
-                    } else {
-                        const validCcd = ccds.find(ccd => {
-                            const fov = parseFOV(ccd.视野);
-                            return fov && length <= fov.w && width <= fov.h;
-                        });
-                        if (!validCcd) {
-                            isValid = false;
-                        } else {
-                            result.grayPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
-                            precisionSum += result.grayPrecision;
-                            precisionCount++;
-                        }
-                    }
-                }
-                
-                // 检查端面
-                if (isValid && endFace) {
-                    const ccds = d.工位.filter(w => w.检测项.includes("端面"));
-                    if (ccds.length === 0) {
-                        isValid = false;
-                    } else {
-                        const minFOV = Math.min(...ccds.map(ccd => {
-                            const fov = parseFOV(ccd.视野);
-                            return fov ? Math.min(fov.w, fov.h) : Infinity;
-                        }));
-                        if (minFOV <= thickness) {
-                            isValid = false;
-                        } else {
-                            result.endFacePrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
-                            precisionSum += result.endFacePrecision;
-                            precisionCount++;
-                        }
-                    }
-                }
-                
-                // 检查面差
-                if (isValid && faceDiff) {
-                    const ccds = d.工位.filter(w => w.检测项.includes("面差"));
-                    if (ccds.length === 0) {
-                        isValid = false;
-                    } else {
-                        const minFOV = Math.min(...ccds.map(ccd => {
-                            const fov = parseFOV(ccd.视野);
-                            return fov ? Math.min(fov.w, fov.h) : Infinity;
-                        }));
-                        if (minFOV <= width) {
-                            isValid = false;
-                        } else {
-                            result.faceDiffPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
-                            precisionSum += result.faceDiffPrecision;
-                            precisionCount++;
-                        }
-                    }
-                }
-                
-                if (isValid) {
-                    // 如果只有涡流检测，设置一个默认精度
-                    if (precisionCount === 0 && eddyCurrent) {
-                        result.precision = 0;
-                    } else {
-                        result.precision = precisionSum / precisionCount;
-                    }
-                    results.push(result);
-                }
-            });
-            
-            // 排序逻辑
-            return results.sort((a, b) => {
-                // 优先按平面尺寸和厚度尺寸精度排序
-                if (a.flatPrecision !== b.flatPrecision) {
-                    return a.flatPrecision - b.flatPrecision;
-                }
-                if (a.thicknessPrecision !== b.thicknessPrecision) {
-                    return a.thicknessPrecision - b.thicknessPrecision;
-                }
-                
-                // 然后按上表面和下表面精度排序
-                if (a.topPrecision !== b.topPrecision) {
-                    return a.topPrecision - b.topPrecision;
-                }
-                if (a.bottomPrecision !== b.bottomPrecision) {
-                    return a.bottomPrecision - b.bottomPrecision;
-                }
-                
-                // 最后按侧面检测精度排序
-                return a.sidePrecision - b.sidePrecision;
-            });
+
+        
+// ==================== 多条件筛选函数 ====================
+function filterByMultipleCriteria(length, width, thickness, flatDim, thickDim, topSurf, botSurf, sideSurf, gray, endFace, faceDiff, eddyCurrent) {
+    const results = [];
+    
+    detailedDevices.forEach(d => {
+        let isValid = true;
+        let precisionSum = 0;
+        let precisionCount = 0;
+        const result = {
+            deviceID: d.设备号,
+            flatPrecision: Infinity,
+            thicknessPrecision: Infinity,
+            topPrecision: Infinity,
+            bottomPrecision: Infinity,
+            sidePrecision: Infinity,
+            grayPrecision: Infinity,
+            endFacePrecision: Infinity,
+            faceDiffPrecision: Infinity,
+            eddyCurrentPrecision: Infinity
+        };
+        
+        // 检查涡流检测 - 只检查是否存在该检测项
+        if (eddyCurrent) {
+            const ccds = d.工位.filter(w => w.检测项.includes("涡流检测"));
+            if (ccds.length === 0) {
+                isValid = false;
+            } else {
+                result.eddyCurrentPrecision = 0;
+                // 涡流检测不参与精度计算，只作为必要条件
+            }
         }
+        
+        // 检查面差检测 - 只检查是否存在该检测项
+        if (isValid && faceDiff) {
+            const ccds = d.工位.filter(w => w.检测项.includes("面差"));
+            if (ccds.length === 0) {
+                isValid = false;
+            } else {
+                result.faceDiffPrecision = 0;
+                // 面差检测不参与精度计算，只作为必要条件
+            }
+        }
+        
+        // 检查平面尺寸
+        if (isValid && flatDim) {
+            const ccd = d.工位.find(w => w.检测项 === "平面尺寸");
+            if (!ccd) {
+                isValid = false;
+            } else {
+                const fov = parseFOV(ccd.视野);
+                if (!fov || length > fov.w || width > fov.h) {
+                    isValid = false;
+                } else {
+                    result.flatPrecision = ccd["单像素精度 (μm)"];
+                    precisionSum += result.flatPrecision;
+                    precisionCount++;
+                }
+            }
+        }
+        
+        // 检查厚度尺寸
+        if (isValid && thickDim) {
+            const ccd = d.工位.find(w => ["厚度", "厚度尺寸"].includes(w.检测项));
+            if (!ccd) {
+                isValid = false;
+            } else {
+                const fov = parseFOV(ccd.视野);
+                if (!fov || thickness > fov.h) {
+                    isValid = false;
+                } else {
+                    result.thicknessPrecision = ccd["单像素精度 (μm)"];
+                    precisionSum += result.thicknessPrecision;
+                    precisionCount++;
+                }
+            }
+        }
+        
+        // 检查端面
+        if (isValid && endFace) {
+            const ccds = d.工位.filter(w => w.检测项.includes("端面"));
+            if (ccds.length === 0) {
+                isValid = false;
+            } else {
+                const minFOV = Math.min(...ccds.map(ccd => {
+                    const fov = parseFOV(ccd.视野);
+                    return fov ? Math.min(fov.w, fov.h) : Infinity;
+                }));
+                if (minFOV <= thickness) {
+                    isValid = false;
+                } else {
+                    result.endFacePrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                    precisionSum += result.endFacePrecision;
+                    precisionCount++;
+                }
+            }
+        }
+        
+        // 检查上表面
+        if (isValid && topSurf) {
+            const ccds = d.工位.filter(w => w.检测项.includes("上表面"));
+            if (ccds.length === 0) {
+                isValid = false;
+            } else {
+                const validCcd = ccds.find(ccd => {
+                    const fov = parseFOV(ccd.视野);
+                    return fov && length <= fov.w && width <= fov.h;
+                });
+                if (!validCcd) {
+                    isValid = false;
+                } else {
+                    result.topPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                    precisionSum += result.topPrecision;
+                    precisionCount++;
+                }
+            }
+        }
+        
+        // 检查下表面
+        if (isValid && botSurf) {
+            const ccds = d.工位.filter(w => w.检测项.includes("下表面"));
+            if (ccds.length === 0) {
+                isValid = false;
+            } else {
+                const validCcd = ccds.find(ccd => {
+                    const fov = parseFOV(ccd.视野);
+                    return fov && length <= fov.w && width <= fov.h;
+                });
+                if (!validCcd) {
+                    isValid = false;
+                } else {
+                    result.bottomPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                    precisionSum += result.bottomPrecision;
+                    precisionCount++;
+                }
+            }
+        }
+        
+        // 检查侧面
+        if (isValid && sideSurf) {
+            const ccds = d.工位.filter(w => w.检测项.includes("侧面"));
+            if (ccds.length === 0) {
+                isValid = false;
+            } else {
+                const validCcd = ccds.find(ccd => {
+                    const fov = parseFOV(ccd.视野);
+                    return fov && length <= fov.w && width <= fov.h;
+                });
+                if (!validCcd) {
+                    isValid = false;
+                } else {
+                    result.sidePrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                    precisionSum += result.sidePrecision;
+                    precisionCount++;
+                }
+            }
+        }
+        
+        // 检查灰度
+        if (isValid && gray) {
+            const ccds = d.工位.filter(w => w.检测项.includes("灰度"));
+            if (ccds.length === 0) {
+                isValid = false;
+            } else {
+                const validCcd = ccds.find(ccd => {
+                    const fov = parseFOV(ccd.视野);
+                    return fov && length <= fov.w && width <= fov.h;
+                });
+                if (!validCcd) {
+                    isValid = false;
+                } else {
+                    result.grayPrecision = Math.min(...ccds.map(ccd => ccd["单像素精度 (μm)"] || Infinity));
+                    precisionSum += result.grayPrecision;
+                    precisionCount++;
+                }
+            }
+        }
+        
+        if (isValid) {
+            // 如果只有涡流检测或面差检测，设置一个默认精度
+            if (precisionCount === 0 && (eddyCurrent || faceDiff)) {
+                result.precision = 0;
+            } else {
+                result.precision = precisionSum / precisionCount;
+            }
+            results.push(result);
+        }
+    });
+    
+    // 多级排序逻辑
+    return results.sort((a, b) => {
+        // 定义排序优先级
+        const priorities = [
+            { key: 'flatPrecision', condition: flatDim },
+            { key: 'thicknessPrecision', condition: thickDim },
+            { key: 'endFacePrecision', condition: endFace },
+            { key: 'topPrecision', condition: topSurf },
+            { key: 'bottomPrecision', condition: botSurf },
+            { key: 'sidePrecision', condition: sideSurf },
+            { key: 'grayPrecision', condition: gray }
+        ];
+        
+        // 过滤出实际勾选的检测项
+        const activePriorities = priorities.filter(p => p.condition);
+        
+        // 递归排序函数
+        function recursiveSort(a, b, priorityIndex) {
+            if (priorityIndex >= activePriorities.length) {
+                return 0; // 所有优先级都相同
+            }
+            
+            const currentPriority = activePriorities[priorityIndex];
+            const aValue = Math.round(a[currentPriority.key]);
+            const bValue = Math.round(b[currentPriority.key]);
+            const diff = Math.abs(aValue - bValue);
+            
+            // 如果当前优先级精度差小于5，则进入下一级优先级
+            if (diff < 5 && priorityIndex < activePriorities.length - 1) {
+                const nextResult = recursiveSort(a, b, priorityIndex + 1);
+                if (nextResult !== 0) {
+                    return nextResult;
+                }
+            }
+            
+            // 按当前优先级排序
+            return aValue - bValue;
+        }
+        
+        // 开始递归排序
+        return recursiveSort(a, b, 0);
+    });
+}
+
+
+
+
+// ==================== 结果显示 ====================
+function displayResults(results) {
+    const tableBody = document.getElementById("lensResults");
+    tableBody.innerHTML = "";
+
+    if (results.length === 0) {
+        alert("没有找到符合的设备");
+        document.getElementById("loadingIndicator").style.display = "none";
+        return;
+    }
+
+    // 计算匹配度
+    const selectedCount = getSelectedCount();
+    if (selectedCount > 0) {
+        const precisions = results.map(r => Math.round(r.precision));
+        const minPrec = Math.min(...precisions);
+        const maxPrec = Math.max(...precisions);
+        const range = maxPrec - minPrec || 1;
+
+        results.forEach(r => {
+            const roundedPrecision = Math.round(r.precision);
+            r.matchScore = (-0.7 * (roundedPrecision / range)) + (1 + 0.7 * (minPrec / range));
+            r.matchScore = Math.max(0, Math.min(100, r.matchScore * 100)).toFixed(1);
+        });
+    }
+
+    results.forEach((result, index) => {
+        const deviceData = detailedDevices.find(d => d.设备号 === result.deviceID);
+        if (!deviceData) return;
+
+        const stationCount = deviceData.工位.length;
+        const hasSide = deviceData.工位.some(ccd => ccd.检测项.includes("侧面")) ? "有" : "无";
+        const hasGrayscale = deviceData.工位.some(ccd => ccd.检测项.includes("灰度")) ? "有" : "无";
+        const hasEndFace = deviceData.工位.some(ccd => ccd.检测项.includes("端面")) ? "有" : "无";
+        const hasEddyCurrent = deviceData.工位.some(ccd => ccd.检测项.includes("涡流检测")) ? "有" : "无";
+
+        const matchClass = result.matchScore >= 70 ? "match-high" :
+                           result.matchScore >= 50 ? "match-medium" : "match-low";
+
+        const summaryRow = document.createElement("tr");
+        summaryRow.classList.add("summary-row");
+        if (index === 0) summaryRow.classList.add("recommended");
+        summaryRow.setAttribute("data-expanded", "false");
+        summaryRow.style.cursor = "pointer";
+
+        summaryRow.innerHTML = `
+            <td><strong>${result.deviceID}</strong></td>
+            <td>${stationCount}</td>
+            <td>${hasSide}</td>
+            <td>${hasGrayscale}</td>
+            <td>${hasEndFace}</td>
+            <td>${hasEddyCurrent}</td>
+            <td><span class="match-score ${matchClass}">${result.matchScore}%</span></td>
+        `;
+
+        const detailRow = document.createElement("tr");
+        detailRow.classList.add("detail-row");
+        detailRow.innerHTML = `<td colspan="7"></td>`;
+        detailRow.style.display = "none";
+
+        const detailContent = detailRow.querySelector("td");
+        const detailTable = createDetailTable(deviceData);
+        detailContent.appendChild(detailTable);
+
+        summaryRow.addEventListener("click", function () {
+            const isExpanded = this.getAttribute("data-expanded") === "true";
+            document.querySelectorAll(".detail-row").forEach(row => row.style.display = "none");
+            document.querySelectorAll(".summary-row").forEach(row => row.setAttribute("data-expanded", "false"));
+            if (!isExpanded) {
+                detailRow.style.display = "table-row";
+                this.setAttribute("data-expanded", "true");
+            }
+        });
+
+        tableBody.appendChild(summaryRow);
+        tableBody.appendChild(detailRow);
+    });
+}
+
+// 辅助函数：获取选中的检测项数量
+function getSelectedCount() {
+    const flatDim = document.getElementById("flatDimension").checked;
+    const thickDim = document.getElementById("thicknessDimension").checked;
+    const topSurf = document.getElementById("topSurface").checked;
+    const botSurf = document.getElementById("bottomSurface").checked;
+    const sideSurf = document.getElementById("sideSurface").checked;
+    const gray = document.getElementById("grayscale").checked;
+    const endFace = document.getElementById("endFace").checked;
+    const faceDiff = document.getElementById("faceDifference").checked;
+    const eddyCurrent = document.getElementById("eddyCurrent").checked;
+
+    const checkedItems = [flatDim, thickDim, topSurf, botSurf, sideSurf, gray, endFace, faceDiff, eddyCurrent];
+    return checkedItems.filter(Boolean).length;
+}
+
+
 
         // ==================== 结果显示 ====================
         function displayResults(results) {
