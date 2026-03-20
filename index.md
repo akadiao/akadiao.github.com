@@ -18,6 +18,7 @@
 
 ## ------------------------
 #### 网站收藏
+##### [视频资源](https://ayouth.top/ayouth/video.html)
 ##### [Reddit](https://www.reddit.com/)
 ##### [安娜档案电子书](https://annas-archive.org/)
 ##### [电子图书馆](https://zlibrary-china.se/)
