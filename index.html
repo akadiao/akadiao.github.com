@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>akadiao · 个人主页</title>
+    <!-- 引入 Google Fonts  -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 (免费图标库) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #eef4ff;
+            line-height: 1.5;
+            padding: 2rem 1.5rem;
+        }
+
+        /* 科技感扫描线效果 (细微) */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(0deg, rgba(0, 255, 255, 0.02) 0px, rgba(0, 255, 255, 0.02) 2px, transparent 2px, transparent 6px);
+            z-index: 999;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 头部区域 = 身份卡 */
+        .hero {
+            background: rgba(12, 20, 30, 0.55);
+            backdrop-filter: blur(12px);
+            border-radius: 2.5rem;
+            border: 1px solid rgba(0, 255, 255, 0.25);
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(0, 255, 255, 0.1) inset;
+            padding: 2rem 2rem;
+            margin-bottom: 2.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF, #7bc5ff, #2dd4bf);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .badge-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin: 1rem 0 0.8rem;
+        }
+
+        .badge {
+            background: rgba(0, 255, 255, 0.08);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 40px;
+            padding: 0.3rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            backdrop-filter: blur(4px);
+        }
+
+        .badge i {
+            margin-right: 6px;
+            color: #2dd4bf;
+        }
+
+        .desc-text {
+            font-size: 1.1rem;
+            color: #bfd9ff;
+            max-width: 85%;
+            margin-top: 0.8rem;
+            border-left: 3px solid #2dd4bf;
+            padding-left: 1rem;
+        }
+
+        /* 网格布局 — 科技感卡片流 */
+        .section-title {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin: 2rem 0 1.2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 2px solid rgba(45, 212, 191, 0.4);
+            padding-bottom: 0.5rem;
+            width: fit-content;
+        }
+        .section-title i {
+            color: #2dd4bf;
+            font-size: 1.5rem;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.4rem;
+            margin-bottom: 2rem;
+        }
+
+        /* 玻璃卡片 */
+        .glass-card {
+            background: rgba(18, 25, 40, 0.55);
+            backdrop-filter: blur(8px);
+            border-radius: 1.8rem;
+            border: 1px solid rgba(72, 187, 255, 0.2);
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            overflow: hidden;
+            position: relative;
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 20px 30px -12px rgba(0, 200, 255, 0.2);
+            background: rgba(20, 32, 50, 0.7);
+        }
+
+        .card-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1rem 1.3rem;
+            text-decoration: none;
+            color: #eef4ff;
+            font-weight: 500;
+            transition: 0.1s;
+            font-size: 1rem;
+        }
+        .card-link i {
+            font-size: 1.4rem;
+            width: 32px;
+            color: #2dd4bf;
+            transition: 0.2s;
+        }
+        .card-link span {
+            flex: 1;
+            word-break: break-word;
+        }
+        .card-link:hover i {
+            transform: translateX(3px);
+            color: #5ee0d4;
+        }
+        /* 特殊工具类双行描述 */
+        .small-desc {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 4px;
+            display: block;
+            font-family: monospace;
+        }
+
+        /* 内部特殊布局（例如双排inline） */
+        .inline-badge {
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 2px 8px;
+            margin-left: 8px;
+        }
+
+        /* 游戏地图卡稍微特别 */
+        .subnote {
+            font-size: 0.7rem;
+            color: #8aaee0;
+            margin-top: 5px;
+            display: block;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border-color: #2dd4bf30;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(45,212,191,0.2);
+            color: #7d9ed7;
+        }
+
+        @media (max-width: 680px) {
+            body {
+                padding: 1rem;
+            }
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            .desc-text {
+                max-width: 100%;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 特殊分组样式：让搜索引擎一行紧凑但依旧优雅 */
+        .compact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 0.8rem;
+        }
+        .compact-card .card-link {
+            padding: 0.7rem 1rem;
+        }
+        .glow-text {
+            text-shadow: 0 0 4px rgba(0,255,255,0.3);
+        }
+        a {
+            text-decoration: none;
+        }
+        .section-icon {
+            background: #0f172a;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: normal;
+            margin-left: 12px;
+            letter-spacing: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 头部简介 - 科技风身份区 -->
+    <div class="hero">
+        <h1>akadiao <span style="font-size: 1.2rem; background: none; -webkit-background-clip: unset; color: #7bc5ff;">✦</span></h1>
+        <div class="badge-group">
+            <span class="badge"><i class="fas fa-code"></i> Windows 10 App Dev</span>
+            <span class="badge"><i class="fas fa-brain"></i> 工业视觉 / C#</span>
+            <span class="badge"><i class="fas fa-cube"></i> 个人收藏夹</span>
+        </div>
+        <div class="desc-text">
+            <i class="fas fa-map-marker-alt" style="margin-right: 8px;"></i> 站点汇总 <br>
+            Windows 10 应用开发 | 自动化设备 | 数字花园
+        </div>
+    </div>
+
+    <!-- 内部工具快速入口（原首页两个核心链接） -->
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 1rem;">
+        <div class="glass-card">
+            <a class="card-link" href="/产品部三车间CCD机台匹配工具.HTML">
+                <i class="fas fa-microchip"></i>
+                <span>🔧 CCD机台匹配工具 <span class="inline-badge">产线核心</span></span>
+                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
+            </a>
+        </div>
+        <div class="glass-card">
+            <a class="card-link" href="/open_camera_grab_picture5.html">
+                <i class="fas fa-camera"></i>
+                <span>📸 拍照工具 · 视觉采集 <span class="inline-badge">实时抓拍</span></span>
+                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- ================= 搜索引擎区 ================= -->
+    <div class="section-title">
+        <i class="fas fa-search"></i> 智联引擎 · 星海检索
+        <span class="section-icon">AI enhanced</span>
+    </div>
+    <div class="compact-grid">
+        <div class="glass-card compact-card"><a class="card-link" href="https://yandex.com/" target="_blank" rel="noopener"><i class="fas fa-globe"></i><span>俄罗斯 Yandex</span></a></div>
+        <div class="glass-card compact-card"><a class="card-link" href="https://www.naver.com/" target="_blank" rel="noopener"><i class="fas fa-globe"></i><span>韩国 NAVER</span></a></div>
+        <div class="glass-card compact-card"><a class="card-link" href="https://www.sajasearch.com/" target="_blank" rel="noopener"><i class="fas fa-dice-d6"></i><span>SajaSearch</span></a></div>
+        <div class="glass-card compact-card"><a class="card-link" href="https://www.lycos.com/" target="_blank" rel="noopener"><i class="fas fa-dog"></i><span>Lycos</span></a></div>
+        <div class="glass-card compact-card"><a class="card-link" href="https://akavita.com/ru/" target="_blank" rel="noopener"><i class="fas fa-feather-alt"></i><span>Akavita</span></a></div>
+        <div class="glass-card compact-card"><a class="card-link" href="https://duckduckgo.com/" target="_blank" rel="noopener"><i class="fas fa-duck"></i><span>DuckDuckGo</span></a></div>
+        <div class="glass-card compact-card"><a class="card-link" href="https://metaso.cn/" target="_blank" rel="noopener"><i class="fas fa-robot"></i><span>秘塔AI搜索</span></a></div>
+    </div>
+
+    <!-- 网站收藏 (主要) -->
+    <div class="section-title"><i class="fas fa-bookmark"></i> 数字藏馆 · 灵感泉涌</div>
+    <div class="card-grid">
+        <div class="glass-card"><a class="card-link" href="https://ayouth.top/ayouth/video.html" target="_blank"><i class="fas fa-film"></i><span>视频资源</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.reddit.com/" target="_blank"><i class="fab fa-reddit-alien"></i><span>Reddit</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://annas-archive.org/" target="_blank"><i class="fas fa-archive"></i><span>安娜档案电子书</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://zlibrary-china.se/" target="_blank"><i class="fas fa-book-open"></i><span>电子图书馆</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://gfsoso.99lb.net/sci-hub.html" target="_blank"><i class="fas fa-flask"></i><span>谷粉学术 sci-hub</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://hdlbits.01xz.net/wiki/Main_Page" target="_blank"><i class="fas fa-microchip"></i><span>Verilog HDL学习</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.cbaigui.com/" target="_blank"><i class="fas fa-dragon"></i><span>知妖 · 中国妖怪百集</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.allhistory.com/" target="_blank"><i class="fas fa-history"></i><span>全历史</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://guides.library.harvard.edu/Chinese" target="_blank"><i class="fas fa-university"></i><span>哈佛汉学研究</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://www.xzqh.org/html/list/10100.html" target="_blank"><i class="fas fa-map"></i><span>中国行政区划</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.ncpa-classic.com/index.shtml" target="_blank"><i class="fas fa-music"></i><span>古典音乐频道</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://www.ryongnamsan.edu.kp/univ/cn/index" target="_blank"><i class="fas fa-landmark"></i><span>金日成综合大学</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.rainymood.com/" target="_blank"><i class="fas fa-cloud-rain"></i><span>雨声在线播放</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://asoftmurmur.com/" target="_blank"><i class="fas fa-volume-up"></i><span>环境音在线播</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://theuselessweb.com/" target="_blank"><i class="fas fa-laugh-squint"></i><span>没啥用网站</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://wangyasai.github.io/Stars-Emmision/" target="_blank"><i class="fas fa-star-of-life"></i><span>Star Emission</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://alteredqualia.com/" target="_blank"><i class="fas fa-cubes"></i><span>3D 网页实验</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://smartmockups.com/" target="_blank"><i class="fas fa-mobile-alt"></i><span>样机生成网</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://getmosh.io/" target="_blank"><i class="fas fa-icons"></i><span>故障照片效果</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.thiswaifudoesnotexist.net/" target="_blank"><i class="fas fa-user-astronaut"></i><span>少女生成器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://thispersondoesnotexist.com/" target="_blank"><i class="fas fa-user-secret"></i><span>此人不存在</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://random.dog/" target="_blank"><i class="fas fa-dog"></i><span>随机狗子生成器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://www.koalastothemax.com/" target="_blank"><i class="fas fa-paw"></i><span>考拉现身</span></a></div>
+        <div class="glass-card"><a class="card-link" href="donothingfor2minutes.com" target="_blank"><i class="fas fa-hourglass-half"></i><span>发呆两分钟</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://youquhome.com/jingdian/" target="_blank"><i class="fas fa-star"></i><span>趣站汇总</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://matrix67.itch.io/pi-day-challenge" target="_blank"><i class="fas fa-chalkboard"></i><span>画圆挑战</span></a></div>
+    </div>
+
+    <!-- 另类工具 + 未来工具 -->
+    <div class="section-title"><i class="fas fa-magic"></i> 极客玩具 · 另类工坊</div>
+    <div class="card-grid">
+        <div class="glass-card"><a class="card-link" href="https://www.futuretools.io/" target="_blank"><i class="fas fa-rocket"></i><span>未来工具合集</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://fakeupdate.net/" target="_blank"><i class="fas fa-desktop"></i><span>假装系统升级界面</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://geektyper.com/" target="_blank"><i class="fas fa-terminal"></i><span>黑客模拟</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://kaseidis.gitee.io/interesting_gadgets/marketing_generator/index.htm" target="_blank"><i class="fas fa-chart-line"></i><span>营销号生成器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://chp.shadiao.app/" target="_blank"><i class="fas fa-heart"></i><span>彩虹屁生成器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.foldnfly.com/index.html#/1-1-1-1-1-1-1-1-2" target="_blank"><i class="fas fa-paper-plane"></i><span>纸飞机选型手册</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://10minutemail.net/" target="_blank"><i class="fas fa-envelope"></i><span>10分钟邮箱</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://weavesilk.com/" target="_blank"><i class="fas fa-paintbrush"></i><span>光线绘画网站</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://thisissand.com/" target="_blank"><i class="fas fa-snowplow"></i><span>在线沙画创作</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://wangyasai.github.io/Stars-Emmision/" target="_blank"><i class="fas fa-chart-line"></i><span>放射线条自动生成</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://wordart.com/j1nc19bornwr/tagulcom" target="_blank"><i class="fas fa-cloud"></i><span>词云在线生成</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://cts.chazhi.net/" target="_blank"><i class="fas fa-feather"></i><span>藏头诗生成器</span></a></div>
+    </div>
+
+    <!-- 正经工具 + 开发资源 -->
+    <div class="section-title"><i class="fas fa-laptop-code"></i> 开发利器 · 正经工坊</div>
+    <div class="card-grid">
+        <div class="glass-card"><a class="card-link" href="https://www.zybuluo.com/cmd/" target="_blank"><i class="fas fa-file-alt"></i><span>Makdown编辑器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.desmos.com/calculator?lang=zh-CN" target="_blank"><i class="fas fa-chart-simple"></i><span>desmos 函数图像</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://editor.codecogs.com/" target="_blank"><i class="fas fa-square-root-alt"></i><span>LaTeX 公式编辑器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.mathcha.io/" target="_blank"><i class="fas fa-drafting-compass"></i><span>数学公式&绘图</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://t.cn/A66G86lO" target="_blank"><i class="fas fa-chart-pie"></i><span>图表在线生成工具</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://arxiv.org/" target="_blank"><i class="fas fa-graduation-cap"></i><span>Cornell arxiv 论文</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.proquest.com/" target="_blank"><i class="fas fa-file-pdf"></i><span>Proquest 论文</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.cn-ki.net/" target="_blank"><i class="fas fa-database"></i><span>iData 论文检索</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://www2.soopat.com/home/iindex" target="_blank"><i class="fas fa-file-alt"></i><span>SooPAT 专利搜索</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.freepatentsonline.com/y2008/0147333.html" target="_blank"><i class="fas fa-gavel"></i><span>US 专利搜索</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://xiezuocat.com/#/" target="_blank"><i class="fas fa-cat"></i><span>秘塔写作猫</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://hdlbits.01xz.net/wiki/Main_Page" target="_blank"><i class="fas fa-microchip"></i><span>Verilog HDL仿真</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://users.monash.edu/~app/CSE2306/" target="_blank"><i class="fas fa-chalkboard-user"></i><span>Verilog 课程</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.5118.com/naotu/?t=zhihu" target="_blank"><i class="fas fa-brain"></i><span>需求分析脑图</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://msdn.itellyou.cn/" target="_blank"><i class="fab fa-microsoft"></i><span>msdn 我告诉你</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://sourceforge.net/" target="_blank"><i class="fas fa-code-branch"></i><span>开源软件平台</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.w3school.com.cn/" target="_blank"><i class="fab fa-html5"></i><span>W3C School</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://textbooks.math.gatech.edu/ila/index2.html" target="_blank"><i class="fas fa-calculator"></i><span>可视化线性代数</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://github.com/TheMRLL/WinXray" target="_blank"><i class="fab fa-github"></i><span>WinXray</span></a></div>
+    </div>
+
+    <!-- 音视频/图片处理 -->
+    <div class="section-title"><i class="fas fa-photo-video"></i> 影音暗房 · 创意工坊</div>
+    <div class="card-grid">
+        <div class="glass-card"><a class="card-link" href="https://www.photopea.com/" target="_blank"><i class="fas fa-paintbrush"></i><span>在线 Photoshop</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://photofunia.com/" target="_blank"><i class="fas fa-magic"></i><span>All effects 图片处理</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://zhongguose.com/#anyuzi" target="_blank"><i class="fas fa-palette"></i><span>中国传统色</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.autodraw.com/" target="_blank"><i class="fas fa-draw-polygon"></i><span>AutoDraw</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://bigjpg.com/" target="_blank"><i class="fas fa-expand-alt"></i><span>图片放大</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://squoosh.app/" target="_blank"><i class="fas fa-compress-alt"></i><span>图片压缩</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://wordart.com/" target="_blank"><i class="fas fa-cloud-upload-alt"></i><span>在线词云设计</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://jpghd.com/" target="_blank"><i class="fas fa-history"></i><span>老照片AI修复</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://vocalremover.org/zh/cutter" target="_blank"><i class="fas fa-cut"></i><span>音频在线编辑</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://online-video-cutter.com/cn/" target="_blank"><i class="fas fa-video"></i><span>音视频在线编辑</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.veed.io/zh-CN/tools/crop-video" target="_blank"><i class="fas fa-edit"></i><span>VEED 剪辑</span></a></div>
+    </div>
+
+    <!-- 科普在线 & 可视化 -->
+    <div class="section-title"><i class="fas fa-glasses"></i> 数据宇宙 · 科普视界</div>
+    <div class="card-grid">
+        <div class="glass-card"><a class="card-link" href="https://projector.tensorflow.org/" target="_blank"><i class="fas fa-chart-network"></i><span>3D张量可视化</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://alteredqualia.com/canvasmol/" target="_blank"><i class="fas fa-atom"></i><span>3D分子式展示</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://neal.fun/size-of-space/" target="_blank"><i class="fas fa-space-shuttle"></i><span>The Size of Space</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://yandex.ru/" target="_blank"><i class="fas fa-map-marked-alt"></i><span>Яндекс 俄罗斯地图</span></a></div>
+        <div class="glass-card"><a class="card-link" href="http://www.secaibi.com/howbigisspace/" target="_blank"><i class="fas fa-arrow-up"></i><span>天空有多高</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.meteorshowers.org/" target="_blank"><i class="fas fa-meteor"></i><span>从太空看流星雨</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://nuclearsecrecy.com/nukemap/" target="_blank"><i class="fas fa-bomb"></i><span>核爆在线模拟</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://iss-sim.spacex.com/" target="_blank"><i class="fas fa-satellite"></i><span>国际空间站对接模拟器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://dinosaurpictures.org/ancient-earth#240" target="_blank"><i class="fas fa-globe-asia"></i><span>古老地球全球</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.shipxy.com/" target="_blank"><i class="fas fa-ship"></i><span>船舶查询 船讯网</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://academictree.org/" target="_blank"><i class="fas fa-tree"></i><span>学术家谱</span></a></div>
+    </div>
+
+    <!-- 游戏 + 地图生成器 -->
+    <div class="section-title"><i class="fas fa-gamepad"></i> 异次元游戏厅 · 随机世界</div>
+    <div class="card-grid">
+        <div class="glass-card"><a class="card-link" href="https://maze.toys/" target="_blank"><i class="fas fa-puzzle-piece"></i><span>迷宫</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.yikm.net/" target="_blank"><i class="fas fa-gamepad"></i><span>小霸王 / 复古游戏厅</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.crazygames.com/" target="_blank"><i class="fas fa-bolt"></i><span>Crazy Games</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.pacogames.com/" target="_blank"><i class="fas fa-globe"></i><span>Paco Games</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.wo1wan.com/" target="_blank"><i class="fas fa-dice"></i><span>wo1wan 游戏</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://kbhgames.com/" target="_blank"><i class="fas fa-joystick"></i><span>KBH Games</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://donjon.bin.sh/fantasy/dungeon/" target="_blank"><i class="fas fa-map"></i><span>随机游戏地图生成器</span><span class="subnote">Dungeon</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://inkwellideas.com/free-tools/random-city-map-generator/" target="_blank"><i class="fas fa-city"></i><span>随机城市地图生成器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://donjon.bin.sh/world/" target="_blank"><i class="fas fa-globe"></i><span>随机星球地图生成器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://rollforfantasy.com/tools/map-creator.php" target="_blank"><i class="fas fa-draw-polygon"></i><span>随机平面地图生成器</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://classic.minecraft.net/?join=MFlcihI-XY-ErVCX" target="_blank"><i class="fas fa-cube"></i><span>我的世界在线版</span></a></div>
+    </div>
+
+    <footer>
+        <i class="fas fa-cogs"></i> akadiao · 科技感数字花园 | 数据永续 · 创意无限 <br>
+        <span style="font-family: monospace;">✦ 工善其事 先利其器 ✦</span>
+    </footer>
+</div>
+</body>
+</html>
