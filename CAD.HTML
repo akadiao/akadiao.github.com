@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简易在线CAD工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .logo-icon {
+            font-size: 28px;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .toolbar {
+            width: 70px;
+            background-color: #fff;
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+        
+        .tool {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px 0;
+            transition: all 0.2s;
+            color: #555;
+        }
+        
+        .tool:hover {
+            background-color: #f0f7ff;
+            color: #3498db;
+        }
+        
+        .tool.active {
+            background-color: #e3f2fd;
+            color: #2980b9;
+            box-shadow: inset 0 0 0 2px #3498db;
+        }
+        
+        .tool-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        
+        .tool-name {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow: hidden;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #canvas {
+            background-color: #fafafa;
+            display: block;
+            cursor: crosshair;
+        }
+        
+        .coordinates {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar {
+            width: 280px;
+            background-color: #fff;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .sidebar h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 18px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .property-group {
+            margin-bottom: 20px;
+        }
+        
+        .property-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .property-item label {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .property-item input, .property-item select {
+            width: 120px;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .color-picker {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #34495e;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .file-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .status-bar {
+            padding: 8px 15px;
+            background-color: #fff;
+            font-size: 13px;
+            color: #666;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .instructions {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .instructions h4 {
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            line-height: 1.5;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .modal textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-drafting-compass"></i></div>
+            <h1>简易在线CAD工具</h1>
+        </div>
+        <div class="header-controls">
+            <button class="btn btn-secondary" id="clearBtn"><i class="fas fa-trash-alt"></i> 清空画布</button>
+            <button class="btn btn-primary" id="saveBtn"><i class="fas fa-save"></i> 保存设计</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="toolbar">
+            <div class="tool active" data-tool="select">
+                <div class="tool-icon"><i class="fas fa-mouse-pointer"></i></div>
+                <div class="tool-name">选择</div>
+            </div>
+            <div class="tool" data-tool="line">
+                <div class="tool-icon"><i class="fas fa-slash"></i></div>
+                <div class="tool-name">直线</div>
+            </div>
+            <div class="tool" data-tool="rectangle">
+                <div class="tool-icon"><i class="fas fa-square"></i></div>
+                <div class="tool-name">矩形</div>
+            </div>
+            <div class="tool" data-tool="circle">
+                <div class="tool-icon"><i class="fas fa-circle"></i></div>
+                <div class="tool-name">圆形</div>
+            </div>
+            <div class="tool" data-tool="text">
+                <div class="tool-icon"><i class="fas fa-font"></i></div>
+                <div class="tool-name">文字</div>
+            </div>
+            <div class="tool" data-tool="measure">
+                <div class="tool-icon"><i class="fas fa-ruler"></i></div>
+                <div class="tool-name">测量</div>
+            </div>
+            <div class="tool" data-tool="move">
+                <div class="tool-icon"><i class="fas fa-arrows-alt"></i></div>
+                <div class="tool-name">移动</div>
+            </div>
+            <div class="tool" data-tool="delete">
+                <div class="tool-icon"><i class="fas fa-trash"></i></div>
+                <div class="tool-name">删除</div>
+            </div>
+        </div>
+        
+        <div class="main-area">
+            <div class="canvas-container">
+                <canvas id="canvas" width="1200" height="700"></canvas>
+                <div class="coordinates">X: 0, Y: 0</div>
+            </div>
+            
+            <div class="status-bar">
+                <div>当前工具: <span id="currentTool">选择工具</span></div>
+                <div>对象数量: <span id="objectCount">0</span></div>
+                <div>缩放: <span id="zoomLevel">100%</span></div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <h3>对象属性</h3>
+            <div class="property-group">
+                <div class="property-item">
+                    <label>线条颜色:</label>
+                    <input type="color" id="strokeColor" value="#3498db" class="color-picker">
+                </div>
+                <div class="property-item">
+                    <label>填充颜色:</label>
+                    <input type="color" id="fillColor" value="#3498db33" class="color-picker">
+                </div>
+                <div class="property-item">
+                    <label>线条宽度:</label>
+                    <input type="range" id="lineWidth" min="1" max="10" value="2">
+                    <span id="lineWidthValue">2</span>
+                </div>
+                <div class="property-item">
+                    <label>字体大小:</label>
+                    <input type="number" id="fontSize" min="10" max="72" value="16">
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h3>设计操作</h3>
+                <div class="file-controls">
+                    <button class="btn btn-secondary" id="loadBtn"><i class="fas fa-folder-open"></i> 加载设计</button>
+                    <button class="btn btn-danger" id="resetBtn"><i class="fas fa-redo"></i> 重置</button>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h4>使用说明：</h4>
+                <ul>
+                    <li>选择工具：单击选择对象，拖动移动对象</li>
+                    <li>绘图工具：单击并拖动来绘制形状</li>
+                    <li>测量工具：单击两点测量距离和角度</li>
+                    <li>缩放：使用鼠标滚轮进行缩放</li>
+                    <li>删除：选择对象后按Delete键或使用删除工具</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="textModal">
+        <div class="modal-content">
+            <h3>添加文字</h3>
+            <textarea id="textInput" placeholder="请输入要添加的文字...">CAD绘图示例</textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelTextBtn">取消</button>
+                <button class="btn btn-primary" id="applyTextBtn">应用</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="saveModal">
+        <div class="modal-content">
+            <h3>保存设计</h3>
+            <p>复制以下JSON数据以保存您的设计：</p>
+            <textarea id="saveData" readonly></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="copyBtn">复制到剪贴板</button>
+                <button class="btn btn-secondary" id="closeSaveBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="loadModal">
+        <div class="modal-content">
+            <h3>加载设计</h3>
+            <p>粘贴之前保存的JSON数据：</p>
+            <textarea id="loadData" placeholder="在此粘贴保存的JSON数据..."></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="loadDataBtn">加载设计</button>
+                <button class="btn btn-secondary" id="closeLoadBtn">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const coordinates = document.querySelector('.coordinates');
+        const currentToolEl = document.getElementById('currentTool');
+        const objectCountEl = document.getElementById('objectCount');
+        const zoomLevelEl = document.getElementById('zoomLevel');
+        const tools = document.querySelectorAll('.tool');
+        const strokeColorEl = document.getElementById('strokeColor');
+        const fillColorEl = document.getElementById('fillColor');
+        const lineWidthEl = document.getElementById('lineWidth');
+        const lineWidthValueEl = document.getElementById('lineWidthValue');
+        const fontSizeEl = document.getElementById('fontSize');
+        const clearBtn = document.getElementById('clearBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const textModal = document.getElementById('textModal');
+        const saveModal = document.getElementById('saveModal');
+        const loadModal = document.getElementById('loadModal');
+        const textInput = document.getElementById('textInput');
+        const applyTextBtn = document.getElementById('applyTextBtn');
+        const cancelTextBtn = document.getElementById('cancelTextBtn');
+        const saveDataEl = document.getElementById('saveData');
+        const copyBtn = document.getElementById('copyBtn');
+        const closeSaveBtn = document.getElementById('closeSaveBtn');
+        const loadDataEl = document.getElementById('loadData');
+        const loadDataBtn = document.getElementById('loadDataBtn');
+        const closeLoadBtn = document.getElementById('closeLoadBtn');
+        const notification = document.getElementById('notification');
+
+        // CAD应用状态
+        const state = {
+            currentTool: 'select',
+            objects: [],
+            selectedObject: null,
+            isDrawing: false,
+            startX: 0,
+            startY: 0,
+            currentX: 0,
+            currentY: 0,
+            scale: 1,
+            offsetX: 0,
+            offsetY: 0,
+            dragStart: null,
+            isDragging: false,
+            tempText: '',
+            measurePoints: [],
+            properties: {
+                strokeColor: '#3498db',
+                fillColor: '#3498db33',
+                lineWidth: 2,
+                fontSize: 16
+            }
+        };
+
+        // 工具名称映射
+        const toolNames = {
+            select: '选择工具',
+            line: '直线工具',
+            rectangle: '矩形工具',
+            circle: '圆形工具',
+            text: '文字工具',
+            measure: '测量工具',
+            move: '移动工具',
+            delete: '删除工具'
+        };
+
+        // 初始化
+        function init() {
+            // 设置Canvas事件监听
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('wheel', handleWheel);
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // 工具选择
+            tools.forEach(tool => {
+                tool.addEventListener('click', () => {
+                    tools.forEach(t => t.classList.remove('active'));
+                    tool.classList.add('active');
+                    const toolType = tool.dataset.tool;
+                    state.currentTool = toolType;
+                    currentToolEl.textContent = toolNames[toolType];
+                    
+                    // 重置测量点
+                    if (toolType !== 'measure') {
+                        state.measurePoints = [];
+                    }
+                    
+                    // 如果是文字工具，显示文字输入框
+                    if (toolType === 'text') {
+                        showTextModal();
+                    }
+                    
+                    render();
+                });
+            });
+            
+            // 属性控制
+            strokeColorEl.addEventListener('change', (e) => {
+                state.properties.strokeColor = e.target.value;
+                if (state.selectedObject) {
+                    state.selectedObject.strokeColor = e.target.value;
+                    render();
+                }
+            });
+            
+            fillColorEl.addEventListener('change', (e) => {
+                state.properties.fillColor = e.target.value;
+                if (state.selectedObject) {
+                    state.selectedObject.fillColor = e.target.value;
+                    render();
+                }
+            });
+            
+            lineWidthEl.addEventListener('input', (e) => {
+                state.properties.lineWidth = parseInt(e.target.value);
+                lineWidthValueEl.textContent = state.properties.lineWidth;
+                if (state.selectedObject) {
+                    state.selectedObject.lineWidth = state.properties.lineWidth;
+                    render();
+                }
+            });
+            
+            fontSizeEl.addEventListener('change', (e) => {
+                state.properties.fontSize = parseInt(e.target.value);
+                if (state.selectedObject && state.selectedObject.type === 'text') {
+                    state.selectedObject.fontSize = state.properties.fontSize;
+                    render();
+                }
+            });
+            
+            // 按钮事件
+            clearBtn.addEventListener('click', clearCanvas);
+            saveBtn.addEventListener('click', showSaveModal);
+            loadBtn.addEventListener('click', showLoadModal);
+            resetBtn.addEventListener('click', resetCanvas);
+            
+            // 模态框事件
+            applyTextBtn.addEventListener('click', applyText);
+            cancelTextBtn.addEventListener('click', () => {
+                textModal.style.display = 'none';
+                switchTool('select');
+            });
+            
+            copyBtn.addEventListener('click', copySaveData);
+            closeSaveBtn.addEventListener('click', () => saveModal.style.display = 'none');
+            closeLoadBtn.addEventListener('click', () => loadModal.style.display = 'none');
+            loadDataBtn.addEventListener('click', loadData);
+            
+            // 添加示例对象
+            addExampleObjects();
+            
+            // 初始渲染
+            render();
+            updateObjectCount();
+        }
+
+        // 处理鼠标按下事件
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left - state.offsetX) / state.scale;
+            const y = (e.clientY - rect.top - state.offsetY) / state.scale;
+            
+            state.startX = x;
+            state.startY = y;
+            state.currentX = x;
+            state.currentY = y;
+            
+            // 根据当前工具处理
+            switch (state.currentTool) {
+                case 'select':
+                    // 检查是否点击了对象
+                    state.selectedObject = getObjectAt(x, y);
+                    if (state.selectedObject) {
+                        state.isDragging = true;
+                        state.dragStart = { x, y };
+                        updatePropertiesPanel();
+                    } else {
+                        state.selectedObject = null;
+                        updatePropertiesPanel();
+                    }
+                    break;
+                    
+                case 'line':
+                case 'rectangle':
+                case 'circle':
+                    state.isDrawing = true;
+                    break;
+                    
+                case 'measure':
+                    state.measurePoints.push({ x, y });
+                    if (state.measurePoints.length > 2) {
+                        state.measurePoints.shift();
+                    }
+                    break;
+                    
+                case 'move':
+                    state.isDragging = true;
+                    state.dragStart = { x: e.clientX, y: e.clientY };
+                    break;
+                    
+                case 'delete':
+                    const objToDelete = getObjectAt(x, y);
+                    if (objToDelete) {
+                        state.objects = state.objects.filter(obj => obj !== objToDelete);
+                        if (state.selectedObject === objToDelete) {
+                            state.selectedObject = null;
+                            updatePropertiesPanel();
+                        }
+                        updateObjectCount();
+                        render();
+                        showNotification('对象已删除');
+                    }
+                    break;
+            }
+            
+            render();
+        }
+
+        // 处理鼠标移动事件
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left - state.offsetX) / state.scale;
+            const y = (e.clientY - rect.top - state.offsetY) / state.scale;
+            
+            // 更新坐标显示
+            coordinates.textContent = `X: ${Math.round(x)}, Y: ${Math.round(y)}`;
+            
+            state.currentX = x;
+            state.currentY = y;
+            
+            // 根据当前工具处理
+            if (state.isDrawing) {
+                render();
+            } else if (state.isDragging && state.selectedObject && state.currentTool === 'select') {
+                // 拖动选中的对象
+                const dx = x - state.dragStart.x;
+                const dy = y - state.dragStart.y;
+                
+                if (state.selectedObject.type === 'line') {
+                    state.selectedObject.x1 += dx;
+                    state.selectedObject.y1 += dy;
+                    state.selectedObject.x2 += dx;
+                    state.selectedObject.y2 += dy;
+                } else if (state.selectedObject.type === 'rectangle') {
+                    state.selectedObject.x += dx;
+                    state.selectedObject.y += dy;
+                } else if (state.selectedObject.type === 'circle') {
+                    state.selectedObject.cx += dx;
+                    state.selectedObject.cy += dy;
+                } else if (state.selectedObject.type === 'text') {
+                    state.selectedObject.x += dx;
+                    state.selectedObject.y += dy;
+                }
+                
+                state.dragStart = { x, y };
+                render();
+            } else if (state.isDragging && state.currentTool === 'move') {
+                // 移动整个画布
+                const dx = e.clientX - state.dragStart.x;
+                const dy = e.clientY - state.dragStart.y;
+                state.offsetX += dx;
+                state.offsetY += dy;
+                state.dragStart = { x: e.clientX, y: e.clientY };
+                render();
+            }
+            
+            if (state.isDrawing || state.currentTool === 'measure') {
+                render();
+            }
+        }
+
+        // 处理鼠标释放事件
+        function handleMouseUp() {
+            if (state.isDrawing) {
+                // 完成绘制
+                finishDrawing();
+                state.isDrawing = false;
+                updateObjectCount();
+                render();
+            }
+            
+            state.isDragging = false;
+            state.dragStart = null;
+        }
+
+        // 处理滚轮事件（缩放）
+        function handleWheel(e) {
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const zoomFactor = 0.1;
+            const oldScale = state.scale;
+            
+            if (e.deltaY < 0) {
+                // 放大
+                state.scale = Math.min(state.scale + zoomFactor, 3);
+            } else {
+                // 缩小
+                state.scale = Math.max(state.scale - zoomFactor, 0.2);
+            }
+            
+            // 调整偏移量，使缩放以鼠标位置为中心
+            state.offsetX = mouseX - (mouseX - state.offsetX) * (state.scale / oldScale);
+            state.offsetY = mouseY - (mouseY - state.offsetY) * (state.scale / oldScale);
+            
+            zoomLevelEl.textContent = `${Math.round(state.scale * 100)}%`;
+            render();
+        }
+
+        // 处理按键事件
+        function handleKeyDown(e) {
+            // 删除键
+            if (e.key === 'Delete' && state.selectedObject) {
+                state.objects = state.objects.filter(obj => obj !== state.selectedObject);
+                state.selectedObject = null;
+                updatePropertiesPanel();
+                updateObjectCount();
+                render();
+                showNotification('对象已删除');
+            }
+            
+            //  Escape键取消选择
+            if (e.key === 'Escape') {
+                state.selectedObject = null;
+                updatePropertiesPanel();
+                render();
+            }
+        }
+
+        // 完成绘制
+        function finishDrawing() {
+            const x1 = state.startX;
+            const y1 = state.startY;
+            const x2 = state.currentX;
+            const y2 = state.currentY;
+            
+            let newObject = null;
+            
+            switch (state.currentTool) {
+                case 'line':
+                    newObject = {
+                        type: 'line',
+                        x1, y1, x2, y2,
+                        strokeColor: state.properties.strokeColor,
+                        lineWidth: state.properties.lineWidth
+                    };
+                    break;
+                    
+                case 'rectangle':
+                    const width = x2 - x1;
+                    const height = y2 - y1;
+                    newObject = {
+                        type: 'rectangle',
+                        x: x1, y: y1, width, height,
+                        strokeColor: state.properties.strokeColor,
+                        fillColor: state.properties.fillColor,
+                        lineWidth: state.properties.lineWidth
+                    };
+                    break;
+                    
+                case 'circle':
+                    const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                    newObject = {
+                        type: 'circle',
+                        cx: x1, cy: y1, radius,
+                        strokeColor: state.properties.strokeColor,
+                        fillColor: state.properties.fillColor,
+                        lineWidth: state.properties.lineWidth
+                    };
+                    break;
+            }
+            
+            if (newObject) {
+                state.objects.push(newObject);
+                state.selectedObject = newObject;
+                updatePropertiesPanel();
+                switchTool('select');
+            }
+        }
+
+        // 渲染画布
+        function render() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 应用缩放和平移
+            ctx.save();
+            ctx.translate(state.offsetX, state.offsetY);
+            ctx.scale(state.scale, state.scale);
+            
+            // 绘制网格
+            drawGrid();
+            
+            // 绘制所有对象
+            state.objects.forEach(obj => {
+                drawObject(obj);
+            });
+            
+            // 绘制当前正在绘制的对象
+            if (state.isDrawing) {
+                drawCurrentShape();
+            }
+            
+            // 绘制测量工具
+            if (state.currentTool === 'measure' && state.measurePoints.length > 0) {
+                drawMeasureTool();
+            }
+            
+            // 绘制选中对象的边框
+            if (state.selectedObject) {
+                drawSelectionHighlight(state.selectedObject);
+            }
+            
+            ctx.restore();
+        }
+
+        // 绘制网格
+        function drawGrid() {
+            const gridSize = 20;
+            const gridColor = '#e0e0e0';
+            
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            
+            // 水平线
+            for (let y = 0; y < canvas.height / state.scale; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width / state.scale, y);
+                ctx.stroke();
+            }
+            
+            // 垂直线
+            for (let x = 0; x < canvas.width / state.scale; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height / state.scale);
+                ctx.stroke();
+            }
+        }
+
+        // 绘制对象
+        function drawObject(obj) {
+            ctx.strokeStyle = obj.strokeColor;
+            ctx.fillStyle = obj.fillColor || 'transparent';
+            ctx.lineWidth = obj.lineWidth || state.properties.lineWidth;
+            ctx.lineCap = 'round';
+            
+            switch (obj.type) {
+                case 'line':
+                    ctx.beginPath();
+                    ctx.moveTo(obj.x1, obj.y1);
+                    ctx.lineTo(obj.x2, obj.y2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'rectangle':
+                    ctx.beginPath();
+                    ctx.rect(obj.x, obj.y, obj.width, obj.height);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+                    
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(obj.cx, obj.cy, obj.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+                    
+                case 'text':
+                    ctx.font = `${obj.fontSize || state.properties.fontSize}px Arial`;
+                    ctx.fillStyle = obj.strokeColor || state.properties.strokeColor;
+                    ctx.fillText(obj.text, obj.x, obj.y);
+                    break;
+            }
+        }
+
+        // 绘制当前正在绘制的形状
+        function drawCurrentShape() {
+            ctx.strokeStyle = state.properties.strokeColor;
+            ctx.fillStyle = state.properties.fillColor;
+            ctx.lineWidth = state.properties.lineWidth;
+            ctx.lineCap = 'round';
+            
+            const x1 = state.startX;
+            const y1 = state.startY;
+            const x2 = state.currentX;
+            const y2 = state.currentY;
+            
+            switch (state.currentTool) {
+                case 'line':
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'rectangle':
+                    const width = x2 - x1;
+                    const height = y2 - y1;
+                    ctx.beginPath();
+                    ctx.rect(x1, y1, width, height);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+                    
+                case 'circle':
+                    const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                    ctx.beginPath();
+                    ctx.arc(x1, y1, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+            }
+        }
+
+        // 绘制测量工具
+        function drawMeasureTool() {
+            ctx.strokeStyle = '#e74c3c';
+            ctx.fillStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            
+            // 绘制点
+            state.measurePoints.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // 绘制线并显示距离和角度
+            if (state.measurePoints.length === 2) {
+                const p1 = state.measurePoints[0];
+                const p2 = state.measurePoints[1];
+                
+                // 绘制线
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+                
+                // 计算距离和角度
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                
+                // 显示测量结果
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText(`距离: ${Math.round(distance)}px`, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2 - 10);
+                ctx.fillText(`角度: ${Math.round(angle)}°`, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2 + 10);
+            }
+            
+            // 绘制当前鼠标位置到最后一个点的线（如果有）
+            if (state.measurePoints.length === 1) {
+                ctx.beginPath();
+                ctx.moveTo(state.measurePoints[0].x, state.measurePoints[0].y);
+                ctx.lineTo(state.currentX, state.currentY);
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // 显示距离和角度
+                const p1 = state.measurePoints[0];
+                const p2 = { x: state.currentX, y: state.currentY };
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText(`距离: ${Math.round(distance)}px`, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2 - 10);
+                ctx.fillText(`角度: ${Math.round(angle)}°`, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2 + 10);
+            }
+        }
+
+        // 绘制选中对象的边框
+        function drawSelectionHighlight(obj) {
+            ctx.strokeStyle = '#f39c12';
+            ctx.fillStyle = '#f39c1280';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            switch (obj.type) {
+                case 'line':
+                    // 绘制线条两端的控制点
+                    ctx.beginPath();
+                    ctx.arc(obj.x1, obj.y1, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(obj.x2, obj.y2, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 绘制线条周围的矩形区域
+                    const minX = Math.min(obj.x1, obj.x2) - 5;
+                    const minY = Math.min(obj.y1, obj.y2) - 5;
+                    const maxX = Math.max(obj.x1, obj.x2) + 5;
+                    const maxY = Math.max(obj.y1, obj.y2) + 5;
+                    ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+                    break;
+                    
+                case 'rectangle':
+                    ctx.strokeRect(obj.x - 5, obj.y - 5, obj.width + 10, obj.height + 10);
+                    break;
+                    
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(obj.cx, obj.cy, obj.radius + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'text':
+                    ctx.font = `${obj.fontSize || state.properties.fontSize}px Arial`;
+                    const textWidth = ctx.measureText(obj.text).width;
+                    ctx.strokeRect(obj.x - 5, obj.y - (obj.fontSize || state.properties.fontSize) - 5, textWidth + 10, (obj.fontSize || state.properties.fontSize) + 10);
+                    break;
+            }
+            
+            ctx.setLineDash([]);
+        }
+
+        // 获取指定位置的对象
+        function getObjectAt(x, y) {
+            // 从后向前检查（最后绘制的在最上面）
+            for (let i = state.objects.length - 1; i >= 0; i--) {
+                const obj = state.objects[i];
+                
+                switch (obj.type) {
+                    case 'line':
+                        // 检查点是否靠近线条
+                        const d = distanceToLine(x, y, obj.x1, obj.y1, obj.x2, obj.y2);
+                        if (d < 10) return obj;
+                        break;
+                        
+                    case 'rectangle':
+                        if (x >= obj.x && x <= obj.x + obj.width &&
+                            y >= obj.y && y <= obj.y + obj.height) {
+                            return obj;
+                        }
+                        break;
+                        
+                    case 'circle':
+                        const dist = Math.sqrt(Math.pow(x - obj.cx, 2) + Math.pow(y - obj.cy, 2));
+                        if (dist <= obj.radius) return obj;
+                        break;
+                        
+                    case 'text':
+                        ctx.font = `${obj.fontSize || state.properties.fontSize}px Arial`;
+                        const textWidth = ctx.measureText(obj.text).width;
+                        if (x >= obj.x && x <= obj.x + textWidth &&
+                            y <= obj.y && y >= obj.y - (obj.fontSize || state.properties.fontSize)) {
+                            return obj;
+                        }
+                        break;
+                }
+            }
+            
+            return null;
+        }
+
+        // 计算点到直线的距离
+        function distanceToLine(px, py, x1, y1, x2, y2) {
+            const A = px - x1;
+            const B = py - y1;
+            const C = x2 - x1;
+            const D = y2 - y1;
+
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            let param = -1;
+            if (lenSq !== 0) param = dot / lenSq;
+
+            let xx, yy;
+
+            if (param < 0) {
+                xx = x1;
+                yy = y1;
+            } else if (param > 1) {
+                xx = x2;
+                yy = y2;
+            } else {
+                xx = x1 + param * C;
+                yy = y1 + param * D;
+            }
+
+            const dx = px - xx;
+            const dy = py - yy;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // 更新属性面板
+        function updatePropertiesPanel() {
+            if (state.selectedObject) {
+                strokeColorEl.value = state.selectedObject.strokeColor || state.properties.strokeColor;
+                fillColorEl.value = state.selectedObject.fillColor || state.properties.fillColor;
+                lineWidthEl.value = state.selectedObject.lineWidth || state.properties.lineWidth;
+                lineWidthValueEl.textContent = lineWidthEl.value;
+                
+                if (state.selectedObject.type === 'text') {
+                    fontSizeEl.value = state.selectedObject.fontSize || state.properties.fontSize;
+                }
+            } else {
+                strokeColorEl.value = state.properties.strokeColor;
+                fillColorEl.value = state.properties.fillColor;
+                lineWidthEl.value = state.properties.lineWidth;
+                lineWidthValueEl.textContent = state.properties.lineWidth;
+            }
+        }
+
+        // 更新对象计数
+        function updateObjectCount() {
+            objectCountEl.textContent = state.objects.length;
+        }
+
+        // 切换工具
+        function switchTool(tool) {
+            tools.forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tool[data-tool="${tool}"]`).classList.add('active');
+            state.currentTool = tool;
+            currentToolEl.textContent = toolNames[tool];
+        }
+
+        // 显示文字输入模态框
+        function showTextModal() {
+            textModal.style.display = 'flex';
+            textInput.focus();
+            textInput.select();
+        }
+
+        // 应用文字
+        function applyText() {
+            const text = textInput.value.trim();
+            if (text) {
+                // 添加文字对象
+                state.objects.push({
+                    type: 'text',
+                    text: text,
+                    x: canvas.width / (2 * state.scale) - state.offsetX / state.scale,
+                    y: canvas.height / (2 * state.scale) - state.offsetY / state.scale,
+                    strokeColor: state.properties.strokeColor,
+                    fontSize: state.properties.fontSize
+                });
+                
+                updateObjectCount();
+                render();
+                textModal.style.display = 'none';
+                switchTool('select');
+                showNotification('文字已添加');
+            }
+        }
+
+        // 显示保存模态框
+        function showSaveModal() {
+            const saveData = {
+                objects: state.objects,
+                scale: state.scale,
+                offsetX: state.offsetX,
+                offsetY: state.offsetY
+            };
+            
+            saveDataEl.value = JSON.stringify(saveData, null, 2);
+            saveModal.style.display = 'flex';
+        }
+
+        // 显示加载模态框
+        function showLoadModal() {
+            loadDataEl.value = '';
+            loadModal.style.display = 'flex';
+        }
+
+        // 复制保存数据
+        function copySaveData() {
+            saveDataEl.select();
+            document.execCommand('copy');
+            showNotification('数据已复制到剪贴板');
+        }
+
+        // 加载数据
+        function loadData() {
+            try {
+                const data = JSON.parse(loadDataEl.value);
+                state.objects = data.objects || [];
+                state.scale = data.scale || 1;
+                state.offsetX = data.offsetX || 0;
+                state.offsetY = data.offsetY || 0;
+                
+                zoomLevelEl.textContent = `${Math.round(state.scale * 100)}%`;
+                updateObjectCount();
+                render();
+                loadModal.style.display = 'none';
+                showNotification('设计已加载');
+            } catch (e) {
+                showNotification('加载失败：数据格式错误', 'error');
+            }
+        }
+
+        // 清空画布
+        function clearCanvas() {
+            if (confirm('确定要清空画布吗？所有未保存的内容将丢失。')) {
+                state.objects = [];
+                state.selectedObject = null;
+                updatePropertiesPanel();
+                updateObjectCount();
+                render();
+                showNotification('画布已清空');
+            }
+        }
+
+        // 重置画布
+        function resetCanvas() {
+            if (confirm('确定要重置画布吗？所有更改将丢失。')) {
+                state.objects = [];
+                state.selectedObject = null;
+                state.scale = 1;
+                state.offsetX = 0;
+                state.offsetY = 0;
+                state.measurePoints = [];
+                
+                zoomLevelEl.textContent = '100%';
+                updatePropertiesPanel();
+                updateObjectCount();
+                
+                // 重新添加示例对象
+                addExampleObjects();
+                render();
+                showNotification('画布已重置');
+            }
+        }
+
+        // 添加示例对象
+        function addExampleObjects() {
+            state.objects.push(
+                {
+                    type: 'rectangle',
+                    x: 100, y: 100, width: 200, height: 150,
+                    strokeColor: '#3498db',
+                    fillColor: '#3498db33',
+                    lineWidth: 2
+                },
+                {
+                    type: 'circle',
+                    cx: 400, cy: 200, radius: 80,
+                    strokeColor: '#e74c3c',
+                    fillColor: '#e74c3c33',
+                    lineWidth: 3
+                },
+                {
+                    type: 'line',
+                    x1: 150, y1: 300, x2: 450, y2: 350,
+                    strokeColor: '#2ecc71',
+                    lineWidth: 2
+                },
+                {
+                    type: 'text',
+                    text: '简易CAD示例',
+                    x: 300, y: 450,
+                    strokeColor: '#2c3e50',
+                    fontSize: 24
+                }
+            );
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.style.backgroundColor = type === 'error' ? '#e74c3c' : '#2ecc71';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>
