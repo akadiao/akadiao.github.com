@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>Photoshop Lite</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #333;
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* 顶部菜单栏 */
+    .menubar {
+      background: #222;
+      padding: 4px 10px;
+      border-bottom: 1px solid #444;
+      display: flex;
+      gap: 15px;
+      position: relative;
+      z-index: 100;
+    }
+    .menu-item {
+      cursor: default;
+      padding: 4px 8px;
+      position: relative;
+    }
+    .menu-item:hover {
+      background: #444;
+    }
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #333;
+      border: 1px solid #555;
+      min-width: 150px;
+      display: none;
+      z-index: 1000;
+    }
+    .menu-item:hover .dropdown {
+      display: block;
+    }
+    .dropdown-item {
+      padding: 8px 12px;
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .dropdown-item:hover {
+      background: #555;
+    }
+    .divider {
+      height: 1px;
+      background: #555;
+      margin: 4px 0;
+    }
+
+    /* 主区域 */
+    .main {
+      display: flex;
+      height: calc(100vh - 30px);
+    }
+
+    /* 工具箱 - 左侧 */
+    .toolbox {
+      width: 60px;
+      background: #2a2a2a;
+      padding: 10px 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-right: 1px solid #444;
+    }
+    .tool-btn {
+      width: 40px;
+      height: 40px;
+      background: #444;
+      border: 1px solid #666;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+    .tool-btn:hover { background: #555; }
+    .tool-btn.active { background: #1e90ff; border-color: #1e90ff; }
+
+    /* 画布区 - 中央 */
+    .canvas-area {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #1e1e1e;
+      overflow: auto;
+      position: relative;
+    }
+    #canvas {
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    #overlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    /* 属性面板 - 右侧 */
+    .properties {
+      width: 220px;
+      background: #2a2a2a;
+      padding: 15px;
+      border-left: 1px solid #444;
+      overflow-y: auto;
+    }
+    .prop-group {
+      margin-bottom: 15px;
+    }
+    .prop-group h3 {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #ccc;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .slider-container label {
+      width: 70px;
+      font-size: 12px;
+    }
+    input[type="range"] {
+      flex: 1;
+    }
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .color-preview {
+      width: 24px;
+      height: 24px;
+      border: 1px solid #666;
+      cursor: pointer;
+    }
+    button, .btn {
+      width: 100%;
+      padding: 6px;
+      margin-top: 5px;
+      background: #444;
+      color: white;
+      border: 1px solid #666;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    button:hover { background: #555; }
+
+    /* 对话框 */
+    .dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .dialog {
+      background: #333;
+      padding: 20px;
+      border-radius: 8px;
+      min-width: 300px;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 1px solid #555;
+    }
+    .dialog h3 {
+      margin-bottom: 15px;
+      color: #fff;
+    }
+    .dialog-row {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+    }
+    .dialog-row label {
+      width: 100px;
+    }
+    .dialog-row input, .dialog-row select {
+      flex: 1;
+      padding: 6px;
+      background: #444;
+      border: 1px solid #666;
+      color: white;
+      border-radius: 3px;
+    }
+    .dialog-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .dialog-btn {
+      padding: 8px 16px;
+      border-radius: 3px;
+      cursor: pointer;
+      border: none;
+    }
+    .dialog-btn.primary {
+      background: #1e90ff;
+      color: white;
+    }
+    .dialog-btn.secondary {
+      background: #666;
+      color: white;
+    }
+
+    /* Blob结果显示区域 */
+    .blob-info {
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    .blob-item {
+      margin-bottom: 8px;
+      padding: 5px;
+      border-bottom: 1px solid #444;
+    }
+    .blob-item:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 顶部菜单栏 -->
+<div class="menubar">
+  <div class="menu-item">
+    文件
+    <div class="dropdown">
+      <div class="dropdown-item" id="menuNew">新建</div>
+      <div class="dropdown-item" id="menuOpen">打开</div>
+      <div class="dropdown-item" id="menuSave">保存</div>
+      <div class="dropdown-item" id="menuSaveAs">另存为</div>
+      <div class="divider"></div>
+      <div class="dropdown-item" onclick="saveImage()">导出为PNG</div>
+    </div>
+  </div>
+  <div class="menu-item">
+    编辑
+    <div class="dropdown">
+      <div class="dropdown-item" onclick="document.getElementById('undoBtn').click()">撤销</div>
+      <div class="dropdown-item" onclick="document.getElementById('resetBtn').click()">重置</div>
+    </div>
+  </div>
+  <div class="menu-item">
+    图像
+    <div class="dropdown">
+      <div class="dropdown-item" onclick="openThresholdDialog()">图像分割</div>
+      <div class="dropdown-item" onclick="openBlobDetectionDialog()">Blob检测</div>
+      <div class="dropdown-item" onclick="extractBlobFeatures()">特征提取</div>
+      <div class="divider"></div>
+      <div class="dropdown-item" onclick="clearBlobOverlay()">清除标注</div>
+    </div>
+  </div>
+  <div class="menu-item">滤镜</div>
+  <div class="menu-item">窗口</div>
+  <div class="menu-item">帮助</div>
+</div>
+
+<!-- 新建画布对话框 -->
+<div class="dialog-overlay" id="newCanvasDialog">
+  <div class="dialog">
+    <h3>新建画布</h3>
+    <div class="dialog-row">
+      <label>宽度：</label>
+      <input type="number" id="newWidth" value="800" min="100" max="3000">
+    </div>
+    <div class="dialog-row">
+      <label>高度：</label>
+      <input type="number" id="newHeight" value="600" min="100" max="3000">
+    </div>
+    <div class="dialog-row">
+      <label>背景：</label>
+      <select id="newBackground" style="flex:1; padding:6px; background:#444; color:white; border:1px solid #666; border-radius:3px;">
+        <option value="white">白色</option>
+        <option value="transparent">透明</option>
+        <option value="custom">自定义</option>
+      </select>
+    </div>
+    <div class="dialog-row" id="customColorRow" style="display:none;">
+      <label>颜色：</label>
+      <input type="color" id="newColor" value="#ffffff" style="flex:1; height:30px;">
+    </div>
+    <div class="dialog-buttons">
+      <button class="dialog-btn secondary" onclick="document.getElementById('newCanvasDialog').style.display='none'">取消</button>
+      <button class="dialog-btn primary" onclick="createNewCanvas()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 图像分割对话框 -->
+<div class="dialog-overlay" id="thresholdDialog">
+  <div class="dialog">
+    <h3>图像分割 - 阈值化</h3>
+    <div class="dialog-row">
+      <label>分割方法：</label>
+      <select id="thresholdMethod" onchange="toggleThresholdParams()">
+        <option value="hard">硬阈值</option>
+        <option value="soft">软阈值</option>
+        <option value="adaptive">动态阈值</option>
+        <option value="watershed">分水岭算法</option>
+      </select>
+    </div>
+    
+    <!-- 硬阈值参数 -->
+    <div id="hardParams" class="threshold-params">
+      <div class="dialog-row">
+        <label>阈值：</label>
+        <input type="range" id="hardThreshold" min="0" max="255" value="128" oninput="document.getElementById('hardValue').textContent=this.value">
+        <span id="hardValue" style="margin-left:10px;">128</span>
+      </div>
+    </div>
+    
+    <!-- 软阈值参数 -->
+    <div id="softParams" class="threshold-params" style="display:none;">
+      <div class="dialog-row">
+        <label>中心阈值：</label>
+        <input type="range" id="softCenter" min="0" max="255" value="128" oninput="document.getElementById('softCenterValue').textContent=this.value">
+        <span id="softCenterValue" style="margin-left:10px;">128</span>
+      </div>
+      <div class="dialog-row">
+        <label>模糊范围：</label>
+        <input type="range" id="softRange" min="0" max="100" value="30" oninput="document.getElementById('softRangeValue').textContent=this.value">
+        <span id="softRangeValue" style="margin-left:10px;">30</span>
+      </div>
+    </div>
+    
+    <!-- 动态阈值参数 -->
+    <div id="adaptiveParams" class="threshold-params" style="display:none;">
+      <div class="dialog-row">
+        <label>块大小：</label>
+        <input type="number" id="adaptiveBlockSize" value="15" min="3" max="101" step="2">
+      </div>
+      <div class="dialog-row">
+        <label>常数C：</label>
+        <input type="number" id="adaptiveC" value="2" min="-50" max="50">
+      </div>
+    </div>
+    
+    <!-- 分水岭参数 -->
+    <div id="watershedParams" class="threshold-params" style="display:none;">
+      <div class="dialog-row">
+        <label>预处理：</label>
+        <select id="watershedPreprocess">
+          <option value="gradient">梯度</option>
+          <option value="distance">距离变换</option>
+        </select>
+      </div>
+      <div class="dialog-row">
+        <label>最小区域：</label>
+        <input type="number" id="watershedMinArea" value="50" min="1" max="1000">
+      </div>
+    </div>
+    
+    <div class="dialog-buttons">
+      <button class="dialog-btn secondary" onclick="document.getElementById('thresholdDialog').style.display='none'">取消</button>
+      <button class="dialog-btn primary" onclick="applyThreshold()">应用</button>
+    </div>
+  </div>
+</div>
+
+<!-- Blob检测对话框 -->
+<div class="dialog-overlay" id="blobDialog">
+  <div class="dialog">
+    <h3>Blob检测 - 连通域标记</h3>
+    <div class="dialog-row">
+      <label>检测算法：</label>
+      <select id="blobMethod">
+        <option value="twopass">两遍扫描算法</option>
+        <option value="runbased">基于运行的两遍扫描</option>
+        <option value="contour">轮廓追踪算法</option>
+      </select>
+    </div>
+    
+    <div class="dialog-row">
+      <label>连接方式：</label>
+      <select id="connectivity">
+        <option value="4">4-连通</option>
+        <option value="8">8-连通</option>
+      </select>
+    </div>
+    
+    <div class="dialog-row">
+      <label>最小面积：</label>
+      <input type="number" id="minArea" value="10" min="1" max="10000">
+    </div>
+    
+    <div class="dialog-row">
+      <label>最大面积：</label>
+      <input type="number" id="maxArea" value="10000" min="1" max="100000">
+    </div>
+    
+    <div class="dialog-row">
+      <label>显示标注：</label>
+      <input type="checkbox" id="showLabels" checked>
+    </div>
+    
+    <div class="dialog-buttons">
+      <button class="dialog-btn secondary" onclick="document.getElementById('blobDialog').style.display='none'">取消</button>
+      <button class="dialog-btn primary" onclick="applyBlobDetection()">检测</button>
+    </div>
+  </div>
+</div>
+
+<!-- 特征提取结果对话框 -->
+<div class="dialog-overlay" id="featuresDialog">
+  <div class="dialog">
+    <h3>Blob特征提取结果</h3>
+    <div class="dialog-row">
+      <label>筛选条件：</label>
+      <select id="filterFeature">
+        <option value="area">面积</option>
+        <option value="perimeter">周长</option>
+        <option value="compactness">紧凑度</option>
+        <option value="circularity">圆形度</option>
+      </select>
+      <input type="number" id="filterMin" placeholder="最小值" style="width:80px; margin-left:10px;">
+      <input type="number" id="filterMax" placeholder="最大值" style="width:80px; margin-left:5px;">
+      <button onclick="filterBlobs()" style="margin-left:10px; padding:4px 8px;">筛选</button>
+    </div>
+    
+    <div class="blob-info" id="blobFeaturesList">
+      <!-- 特征列表将在这里显示 -->
+    </div>
+    
+    <div class="dialog-buttons">
+      <button class="dialog-btn secondary" onclick="document.getElementById('featuresDialog').style.display='none'">关闭</button>
+      <button class="dialog-btn primary" onclick="exportFeatures()">导出CSV</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- 工具箱 -->
+  <div class="toolbox">
+    <div class="tool-btn active" data-tool="brush">🖌️</div>
+    <div class="tool-btn" data-tool="move">↖️</div>
+    <div class="tool-btn" id="undoBtn">↩️</div>
+    <div class="tool-btn" id="resetBtn">🗑️</div>
+  </div>
+
+  <!-- 画布区 -->
+  <div class="canvas-area">
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <canvas id="overlayCanvas" width="800" height="600"></canvas>
+  </div>
+
+  <!-- 属性面板 -->
+  <div class="properties">
+    <div class="prop-group">
+      <h3>📁 图像</h3>
+      <input type="file" id="imageLoader" accept="image/*" style="width:100%; margin-top:5px;" />
+      <button onclick="saveImage()">💾 保存图像</button>
+    </div>
+
+    <div class="prop-group">
+      <h3>🎨 画笔</h3>
+      <div class="slider-container">
+        <label>大小:</label>
+        <input type="range" id="brushSize" min="1" max="50" value="5" />
+      </div>
+      <div class="color-picker">
+        <label>颜色:</label>
+        <div class="color-preview" id="colorPreview" style="background:#ff0000"></div>
+        <input type="color" id="brushColor" value="#ff0000" style="width:60px;" />
+      </div>
+    </div>
+
+    <div class="prop-group">
+      <h3>🎚️ 调整</h3>
+      <div class="slider-container">
+        <label>亮度:</label>
+        <input type="range" id="brightness" min="-100" max="100" value="0" oninput="applyAdjustments()" />
+      </div>
+      <div class="slider-container">
+        <label>对比度:</label>
+        <input type="range" id="contrast" min="-100" max="100" value="0" oninput="applyAdjustments()" />
+      </div>
+      <div class="slider-container">
+        <label>饱和度:</label>
+        <input type="range" id="saturation" min="-100" max="100" value="0" oninput="applyAdjustments()" />
+      </div>
+    </div>
+
+    <div class="prop-group">
+      <h3>🌀 滤镜</h3>
+      <button onclick="applyFilter('grayscale')">灰度</button>
+      <button onclick="applyFilter('invert')">反色</button>
+      <button onclick="applyFilter('sepia')">复古</button>
+      <button onclick="applyFilter('edge')">边缘检测</button>
+      <button onclick="applyFilter('blur')">模糊</button>
+      <button onclick="applyFilter('binarize')">二值化</button>
+    </div>
+    
+    <div class="prop-group">
+      <h3>🔍 Blob检测</h3>
+      <div id="blobCount" style="font-size:12px; margin-bottom:5px;">检测到 0 个Blob</div>
+      <button onclick="highlightSelectedBlob()" style="margin-bottom:5px;">高亮选择</button>
+      <button onclick="clearBlobOverlay()">清除标注</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const overlayCanvas = document.getElementById('overlayCanvas');
+  const ctx = canvas.getContext('2d');
+  const overlayCtx = overlayCanvas.getContext('2d');
+  
+  let originalImageData = null;
+  let historyImage = null;
+  let isDrawing = false;
+  let lastX = 0, lastY = 0;
+  let currentFileName = 'untitled';
+  let currentBlobs = []; // 存储检测到的Blob信息
+  let currentSelectedBlob = -1;
+
+  // 初始化画布
+  function initCanvas() {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    clearOverlay();
+  }
+  initCanvas();
+
+  // 清除覆盖层
+  function clearOverlay() {
+    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    currentBlobs = [];
+    currentSelectedBlob = -1;
+    updateBlobCount();
+  }
+
+  // 清除Blob标注
+  function clearBlobOverlay() {
+    clearOverlay();
+  }
+
+  // 更新Blob计数显示
+  function updateBlobCount() {
+    document.getElementById('blobCount').textContent = `检测到 ${currentBlobs.length} 个Blob`;
+  }
+
+  // 打开阈值对话框
+  function openThresholdDialog() {
+    toggleThresholdParams();
+    document.getElementById('thresholdDialog').style.display = 'flex';
+  }
+
+  // 打开Blob检测对话框
+  function openBlobDetectionDialog() {
+    document.getElementById('blobDialog').style.display = 'flex';
+  }
+
+  // 切换阈值参数显示
+  function toggleThresholdParams() {
+    const method = document.getElementById('thresholdMethod').value;
+    document.querySelectorAll('.threshold-params').forEach(el => {
+      el.style.display = 'none';
+    });
+    document.getElementById(method + 'Params').style.display = 'block';
+  }
+
+  // === 图像分割算法 ===
+  
+  // 1. 硬阈值
+  function applyHardThreshold(imageData, threshold) {
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const gray = 0.2989 * data[i] + 0.5870 * data[i+1] + 0.1140 * data[i+2];
+      const value = gray > threshold ? 255 : 0;
+      data[i] = data[i+1] = data[i+2] = value;
+    }
+    return imageData;
+  }
+
+  // 2. 软阈值
+  function applySoftThreshold(imageData, center, range) {
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const gray = 0.2989 * data[i] + 0.5870 * data[i+1] + 0.1140 * data[i+2];
+      let value;
+      if (gray <= center - range) {
+        value = 0;
+      } else if (gray >= center + range) {
+        value = 255;
+      } else {
+        // 线性过渡
+        value = 128 + ((gray - center) / (range * 2)) * 127;
+      }
+      data[i] = data[i+1] = data[i+2] = Math.min(255, Math.max(0, value));
+    }
+    return imageData;
+  }
+
+  // 3. 动态阈值（自适应阈值）
+  function applyAdaptiveThreshold(imageData, blockSize, C) {
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    // 转换为灰度
+    const grayData = new Uint8ClampedArray(width * height);
+    for (let i = 0; i < data.length; i += 4) {
+      grayData[Math.floor(i/4)] = 0.2989 * data[i] + 0.5870 * data[i+1] + 0.1140 * data[i+2];
+    }
+    
+    // 应用自适应阈值
+    const halfBlock = Math.floor(blockSize / 2);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let sum = 0;
+        let count = 0;
+        
+        // 计算局部均值
+        for (let dy = -halfBlock; dy <= halfBlock; dy++) {
+          for (let dx = -halfBlock; dx <= halfBlock; dx++) {
+            const ny = y + dy;
+            const nx = x + dx;
+            if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+              sum += grayData[ny * width + nx];
+              count++;
+            }
+          }
+        }
+        
+        const mean = sum / count;
+        const gray = grayData[y * width + x];
+        const value = gray > (mean - C) ? 255 : 0;
+        
+        const idx = (y * width + x) * 4;
+        data[idx] = data[idx+1] = data[idx+2] = value;
+      }
+    }
+    return imageData;
+  }
+
+  // 4. 分水岭算法（简化版）
+  function applyWatershed(imageData, method) {
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    // 转换为灰度
+    const grayData = new Float32Array(width * height);
+    for (let i = 0; i < data.length; i += 4) {
+      grayData[Math.floor(i/4)] = 0.2989 * data[i] + 0.5870 * data[i+1] + 0.1140 * data[i+2];
+    }
+    
+    // 计算梯度
+    const gradient = new Float32Array(width * height);
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const idx = y * width + x;
+        const dx = grayData[idx + 1] - grayData[idx - 1];
+        const dy = grayData[idx + width] - grayData[idx - width];
+        gradient[idx] = Math.sqrt(dx * dx + dy * dy);
+      }
+    }
+    
+    // 简化分水岭：使用梯度作为距离
+    const result = new Uint8ClampedArray(data.length);
+    for (let i = 0; i < data.length; i += 4) {
+      const idx = Math.floor(i/4);
+      const g = gradient[idx];
+      const value = g > 20 ? 255 : (g > 10 ? 128 : 0);
+      result[i] = result[i+1] = result[i+2] = value;
+      result[i+3] = data[i+3];
+    }
+    
+    return new ImageData(result, width, height);
+  }
+
+  // 应用阈值分割
+  function applyThreshold() {
+    if (!originalImageData) {
+      alert('请先加载一张图片！');
+      return;
+    }
+    
+    saveHistory();
+    const method = document.getElementById('thresholdMethod').value;
+    let result;
+    
+    switch (method) {
+      case 'hard':
+        const threshold = parseInt(document.getElementById('hardThreshold').value);
+        result = applyHardThreshold(cloneImageData(originalImageData), threshold);
+        break;
+      case 'soft':
+        const center = parseInt(document.getElementById('softCenter').value);
+        const range = parseInt(document.getElementById('softRange').value);
+        result = applySoftThreshold(cloneImageData(originalImageData), center, range);
+        break;
+      case 'adaptive':
+        const blockSize = parseInt(document.getElementById('adaptiveBlockSize').value);
+        const C = parseInt(document.getElementById('adaptiveC').value);
+        result = applyAdaptiveThreshold(cloneImageData(originalImageData), blockSize, C);
+        break;
+      case 'watershed':
+        const preprocess = document.getElementById('watershedPreprocess').value;
+        result = applyWatershed(cloneImageData(originalImageData), preprocess);
+        break;
+    }
+    
+    ctx.putImageData(result, 0, 0);
+    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    document.getElementById('thresholdDialog').style.display = 'none';
+  }
+
+  // === Blob检测算法 ===
+  
+  // 两遍扫描算法
+  function twoPassBlobDetection(imageData, connectivity) {
+    const width = imageData.width;
+    const height = imageData.height;
+    const data = imageData.data;
+    
+    // 第一遍：创建标签并初始化并查集
+    const labels = new Array(width * height).fill(0);
+    const parent = [];
+    let nextLabel = 1;
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = y * width + x;
+        const pixelIdx = idx * 4;
+        
+        if (data[pixelIdx] > 128) { // 前景像素
+          const neighbors = [];
+          
+          // 检查邻居像素
+          if (y > 0 && labels[(y-1) * width + x] > 0) {
+            neighbors.push(labels[(y-1) * width + x]);
+          }
+          if (x > 0 && labels[y * width + (x-1)] > 0) {
+            neighbors.push(labels[y * width + (x-1)]);
+          }
+          
+          if (connectivity === 8) {
+            if (y > 0 && x > 0 && labels[(y-1) * width + (x-1)] > 0) {
+              neighbors.push(labels[(y-1) * width + (x-1)]);
+            }
+            if (y > 0 && x < width-1 && labels[(y-1) * width + (x+1)] > 0) {
+              neighbors.push(labels[(y-1) * width + (x+1)]);
+            }
+          }
+          
+          if (neighbors.length === 0) {
+            labels[idx] = nextLabel;
+            parent[nextLabel] = nextLabel;
+            nextLabel++;
+          } else {
+            const minNeighbor = Math.min(...neighbors);
+            labels[idx] = minNeighbor;
+            
+            // 合并标签
+            for (const neighbor of neighbors) {
+              union(parent, neighbor, minNeighbor);
+            }
+          }
+        }
+      }
+    }
+    
+    // 第二遍：重新标记
+    const labelMap = new Array(nextLabel).fill(0);
+    let currentLabel = 1;
+    
+    for (let i = 1; i < nextLabel; i++) {
+      const root = find(parent, i);
+      if (labelMap[root] === 0) {
+        labelMap[root] = currentLabel++;
+      }
+      labelMap[i] = labelMap[root];
+    }
+    
+    // 应用最终标签
+    for (let i = 0; i < labels.length; i++) {
+      if (labels[i] > 0) {
+        labels[i] = labelMap[labels[i]];
+      }
+    }
+    
+    return extractBlobsFromLabels(labels, width, height);
+  }
+
+  // 并查集辅助函数
+  function find(parent, x) {
+    if (parent[x] !== x) {
+      parent[x] = find(parent, parent[x]);
+    }
+    return parent[x];
+  }
+
+  function union(parent, x, y) {
+    const rootX = find(parent, x);
+    const rootY = find(parent, y);
+    if (rootX !== rootY) {
+      parent[rootY] = rootX;
+    }
+  }
+
+  // 从标签中提取Blob信息
+  function extractBlobsFromLabels(labels, width, height) {
+    const blobs = {};
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const label = labels[y * width + x];
+        if (label > 0) {
+          if (!blobs[label]) {
+            blobs[label] = {
+              pixels: [],
+              minX: x, maxX: x,
+              minY: y, maxY: y
+            };
+          }
+          blobs[label].pixels.push({x, y});
+          blobs[label].minX = Math.min(blobs[label].minX, x);
+          blobs[label].maxX = Math.max(blobs[label].maxX, x);
+          blobs[label].minY = Math.min(blobs[label].minY, y);
+          blobs[label].maxY = Math.max(blobs[label].maxY, y);
+        }
+      }
+    }
+    
+    return Object.values(blobs);
+  }
+
+  // 轮廓追踪算法
+  function contourTracingBlobDetection(imageData) {
+    const width = imageData.width;
+    const height = imageData.height;
+    const data = imageData.data;
+    
+    const visited = new Array(width * height).fill(false);
+    const blobs = [];
+    
+    const directions = [
+      {dx: 1, dy: 0},   // 右
+      {dx: 1, dy: -1},  // 右上
+      {dx: 0, dy: -1},  // 上
+      {dx: -1, dy: -1}, // 左上
+      {dx: -1, dy: 0},  // 左
+      {dx: -1, dy: 1},  // 左下
+      {dx: 0, dy: 1},   // 下
+      {dx: 1, dy: 1}    // 右下
+    ];
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = y * width + x;
+        const pixelIdx = idx * 4;
+        
+        if (data[pixelIdx] > 128 && !visited[idx]) {
+          // 找到轮廓起点
+          const blob = {
+            pixels: [],
+            contour: [],
+            minX: x, maxX: x,
+            minY: y, maxY: y
+          };
+          
+          // 使用Moore边界追踪算法
+          let startX = x;
+          let startY = y;
+          let currentX = x;
+          let currentY = y;
+          let dir = 7; // 从左上方向开始
+          
+          do {
+            visited[currentY * width + currentX] = true;
+            blob.pixels.push({x: currentX, y: currentY});
+            
+            blob.minX = Math.min(blob.minX, currentX);
+            blob.maxX = Math.max(blob.maxX, currentX);
+            blob.minY = Math.min(blob.minY, currentY);
+            blob.maxY = Math.max(blob.maxY, currentY);
+            
+            // 查找下一个边界点
+            let found = false;
+            for (let i = 0; i < 8; i++) {
+              const ndir = (dir + i) % 8;
+              const nx = currentX + directions[ndir].dx;
+              const ny = currentY + directions[ndir].dy;
+              
+              if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                const nidx = ny * width + nx;
+                const npixelIdx = nidx * 4;
+                if (data[npixelIdx] > 128) {
+                  blob.contour.push({x: nx, y: ny});
+                  currentX = nx;
+                  currentY = ny;
+                  dir = (ndir + 5) % 8; // 逆时针转2个方向
+                  found = true;
+                  break;
+                }
+              }
+            }
+            
+            if (!found) break;
+          } while (!(currentX === startX && currentY === startY));
+          
+          blobs.push(blob);
+        }
+      }
+    }
+    
+    return blobs;
+  }
+
+  // 应用Blob检测
+  function applyBlobDetection() {
+    if (!originalImageData) {
+      alert('请先加载一张图片！');
+      return;
+    }
+    
+    const method = document.getElementById('blobMethod').value;
+    const connectivity = parseInt(document.getElementById('connectivity').value);
+    const minArea = parseInt(document.getElementById('minArea').value);
+    const maxArea = parseInt(document.getElementById('maxArea').value);
+    const showLabels = document.getElementById('showLabels').checked;
+    
+    let blobs;
+    switch (method) {
+      case 'twopass':
+        blobs = twoPassBlobDetection(cloneImageData(originalImageData), connectivity);
+        break;
+      case 'runbased':
+        // 简化的基于运行的两遍扫描
+        blobs = twoPassBlobDetection(cloneImageData(originalImageData), connectivity);
+        break;
+      case 'contour':
+        blobs = contourTracingBlobDetection(cloneImageData(originalImageData));
+        break;
+    }
+    
+    // 筛选Blob
+    currentBlobs = blobs.filter(blob => {
+      const area = blob.pixels.length;
+      return area >= minArea && area <= maxArea;
+    });
+    
+    updateBlobCount();
+    
+    // 绘制标注
+    if (showLabels) {
+      drawBlobOverlay();
+    }
+    
+    document.getElementById('blobDialog').style.display = 'none';
+  }
+
+  // 绘制Blob标注
+  function drawBlobOverlay() {
+    clearOverlay();
+    
+    overlayCtx.strokeStyle = '#ff0000';
+    overlayCtx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+    overlayCtx.font = '12px Arial';
+    overlayCtx.textAlign = 'center';
+    overlayCtx.textBaseline = 'middle';
+    
+    currentBlobs.forEach((blob, index) => {
+      // 计算质心
+      let sumX = 0, sumY = 0;
+      blob.pixels.forEach(pixel => {
+        sumX += pixel.x;
+        sumY += pixel.y;
+      });
+      const centroidX = sumX / blob.pixels.length;
+      const centroidY = sumY / blob.pixels.length;
+      
+      // 绘制边界框
+      overlayCtx.strokeRect(
+        blob.minX, blob.minY,
+        blob.maxX - blob.minX + 1,
+        blob.maxY - blob.minY + 1
+      );
+      
+      // 绘制质心
+      overlayCtx.beginPath();
+      overlayCtx.arc(centroidX, centroidY, 3, 0, Math.PI * 2);
+      overlayCtx.fill();
+      
+      // 显示标签
+      overlayCtx.fillStyle = '#ffff00';
+      overlayCtx.fillText(`B${index}`, centroidX, centroidY - 10);
+      overlayCtx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+      
+      // 存储特征
+      blob.centroid = {x: centroidX, y: centroidY};
+      blob.area = blob.pixels.length;
+      blob.width = blob.maxX - blob.minX + 1;
+      blob.height = blob.maxY - blob.minY + 1;
+      blob.index = index;
+    });
+    
+    updateBlobCount();
+  }
+
+  // === 特征提取 ===
+  
+  function extractBlobFeatures() {
+    if (currentBlobs.length === 0) {
+      alert('请先进行Blob检测！');
+      return;
+    }
+    
+    // 为每个Blob计算特征
+    currentBlobs.forEach((blob, index) => {
+      // 1. 计算周长
+      let perimeter = 0;
+      if (blob.contour && blob.contour.length > 0) {
+        perimeter = blob.contour.length;
+      } else {
+        // 估算周长（基于边界框）
+        perimeter = 2 * (blob.width + blob.height);
+      }
+      blob.perimeter = perimeter;
+      
+      // 2. 计算紧凑度
+      blob.compactness = (perimeter * perimeter) / (4 * Math.PI * blob.area);
+      
+      // 3. 计算圆形度
+      blob.circularity = (4 * Math.PI * blob.area) / (perimeter * perimeter);
+      
+      // 4. 计算最小外接矩形方向
+      const dx = blob.width;
+      const dy = blob.height;
+      blob.aspectRatio = dx / dy;
+      
+      // 5. 计算灰度特征（如果可能）
+      if (originalImageData) {
+        let sumGray = 0;
+        blob.pixels.forEach(pixel => {
+          const idx = (pixel.y * originalImageData.width + pixel.x) * 4;
+          sumGray += 0.2989 * originalImageData.data[idx] +
+                    0.5870 * originalImageData.data[idx+1] +
+                    0.1140 * originalImageData.data[idx+2];
+        });
+        blob.meanGray = sumGray / blob.area;
+      }
+    });
+    
+    // 显示特征
+    displayBlobFeatures();
+  }
+
+  function displayBlobFeatures() {
+    const container = document.getElementById('blobFeaturesList');
+    container.innerHTML = '';
+    
+    currentBlobs.forEach((blob, index) => {
+      const div = document.createElement('div');
+      div.className = 'blob-item';
+      div.innerHTML = `
+        <strong>Blob ${index}</strong><br>
+        面积: ${blob.area} px²<br>
+        质心: (${blob.centroid.x.toFixed(1)}, ${blob.centroid.y.toFixed(1)})<br>
+        尺寸: ${blob.width} × ${blob.height}<br>
+        周长: ${blob.perimeter.toFixed(1)}<br>
+        紧凑度: ${blob.compactness.toFixed(3)}<br>
+        圆形度: ${blob.circularity.toFixed(3)}<br>
+        长宽比: ${blob.aspectRatio.toFixed(2)}<br>
+        ${blob.meanGray ? `平均灰度: ${blob.meanGray.toFixed(1)}` : ''}
+      `;
+      div.onclick = () => {
+        currentSelectedBlob = index;
+        highlightSelectedBlob();
+      };
+      container.appendChild(div);
+    });
+    
+    document.getElementById('featuresDialog').style.display = 'flex';
+  }
+
+  function filterBlobs() {
+    const feature = document.getElementById('filterFeature').value;
+    const min = parseFloat(document.getElementById('filterMin').value);
+    const max = parseFloat(document.getElementById('filterMax').value);
+    
+    const container = document.getElementById('blobFeaturesList');
+    const items = container.getElementsByClassName('blob-item');
+    
+    for (let i = 0; i < items.length; i++) {
+      const blob = currentBlobs[i];
+      let value;
+      switch (feature) {
+        case 'area': value = blob.area; break;
+        case 'perimeter': value = blob.perimeter; break;
+        case 'compactness': value = blob.compactness; break;
+        case 'circularity': value = blob.circularity; break;
+      }
+      
+      const visible = (!isNaN(min) ? value >= min : true) && 
+                     (!isNaN(max) ? value <= max : true);
+      items[i].style.display = visible ? 'block' : 'none';
+    }
+  }
+
+  function highlightSelectedBlob() {
+    if (currentSelectedBlob >= 0 && currentSelectedBlob < currentBlobs.length) {
+      clearOverlay();
+      
+      const blob = currentBlobs[currentSelectedBlob];
+      overlayCtx.strokeStyle = '#00ff00';
+      overlayCtx.lineWidth = 2;
+      overlayCtx.strokeRect(
+        blob.minX - 2, blob.minY - 2,
+        blob.width + 4, blob.height + 4
+      );
+      
+      // 绘制质心
+      overlayCtx.fillStyle = '#00ff00';
+      overlayCtx.beginPath();
+      overlayCtx.arc(blob.centroid.x, blob.centroid.y, 5, 0, Math.PI * 2);
+      overlayCtx.fill();
+      
+      overlayCtx.fillStyle = '#00ff00';
+      overlayCtx.font = 'bold 14px Arial';
+      overlayCtx.fillText(`Selected: Blob ${currentSelectedBlob}`, 10, 20);
+    }
+  }
+
+  function exportFeatures() {
+    let csv = 'Blob,Area,CentroidX,CentroidY,Width,Height,Perimeter,Compactness,Circularity,AspectRatio\n';
+    
+    currentBlobs.forEach((blob, index) => {
+      csv += `${index},${blob.area},${blob.centroid.x.toFixed(2)},${blob.centroid.y.toFixed(2)},` +
+             `${blob.width},${blob.height},${blob.perimeter.toFixed(2)},` +
+             `${blob.compactness.toFixed(4)},${blob.circularity.toFixed(4)},` +
+             `${blob.aspectRatio.toFixed(3)}\n`;
+    });
+    
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'blob_features.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // 辅助函数
+  function cloneImageData(imageData) {
+    return new ImageData(
+      new Uint8ClampedArray(imageData.data),
+      imageData.width,
+      imageData.height
+    );
+  }
+
+  // === 文件菜单功能 ===
+  document.getElementById('menuNew').addEventListener('click', () => {
+    document.getElementById('newCanvasDialog').style.display = 'flex';
+  });
+
+  document.getElementById('newBackground').addEventListener('change', function() {
+    const customColorRow = document.getElementById('customColorRow');
+    customColorRow.style.display = this.value === 'custom' ? 'flex' : 'none';
+  });
+
+  function createNewCanvas() {
+    const width = parseInt(document.getElementById('newWidth').value);
+    const height = parseInt(document.getElementById('newHeight').value);
+    const background = document.getElementById('newBackground').value;
+    
+    if (width < 100 || width > 3000 || height < 100 || height > 3000) {
+      alert('宽度和高度必须在100-3000像素之间');
+      return;
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    overlayCanvas.width = width;
+    overlayCanvas.height = height;
+    
+    if (background === 'white') {
+      ctx.fillStyle = '#ffffff';
+    } else if (background === 'custom') {
+      ctx.fillStyle = document.getElementById('newColor').value;
+    } else {
+      ctx.fillStyle = 'rgba(0,0,0,0)';
+    }
+    
+    ctx.fillRect(0, 0, width, height);
+    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    historyImage = null;
+    currentFileName = 'untitled';
+    clearOverlay();
+    resetAdjustments();
+    
+    document.getElementById('newCanvasDialog').style.display = 'none';
+  }
+
+  document.getElementById('menuOpen').addEventListener('click', () => {
+    document.getElementById('imageLoader').click();
+  });
+
+  document.getElementById('menuSave').addEventListener('click', () => {
+    if (currentFileName === 'untitled') {
+      saveAsImage();
+    } else {
+      saveImageToFile(currentFileName + '.png');
+    }
+  });
+
+  document.getElementById('menuSaveAs').addEventListener('click', saveAsImage);
+
+  function saveAsImage() {
+    const fileName = prompt('请输入文件名（不带扩展名）:', currentFileName);
+    if (fileName && fileName.trim() !== '') {
+      currentFileName = fileName.trim();
+      saveImageToFile(currentFileName + '.png');
+    }
+  }
+
+  function saveImageToFile(filename) {
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      alert(`文件已保存为: ${filename}`);
+    }, 'image/png');
+  }
+
+  // === 图像加载 ===
+  document.getElementById('imageLoader').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file || !file.type.match('image.*')) return;
+    
+    currentFileName = file.name.replace(/\.[^/.]+$/, "");
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        saveHistory();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const x = (canvas.width - w) / 2;
+        const y = (canvas.height - h) / 2;
+        ctx.drawImage(img, x, y, w, h);
+        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        clearOverlay();
+        resetAdjustments();
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // === 其他原有功能 ===
+  function saveHistory() {
+    historyImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  }
+
+  document.getElementById('undoBtn').addEventListener('click', () => {
+    if (historyImage) {
+      ctx.putImageData(historyImage, 0, 0);
+      originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      resetAdjustments();
+    }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (originalImageData) {
+      ctx.putImageData(originalImageData, 0, 0);
+      resetAdjustments();
+    } else {
+      initCanvas();
+    }
+  });
+
+  function resetAdjustments() {
+    document.getElementById('brightness').value = 0;
+    document.getElementById('contrast').value = 0;
+    document.getElementById('saturation').value = 0;
+  }
+
+  // === 画笔功能 ===
+  canvas.addEventListener('mousedown', startDrawing);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDrawing);
+  canvas.addEventListener('mouseout', stopDrawing);
+
+  function startDrawing(e) {
+    isDrawing = true;
+    [lastX, lastY] = getMousePos(e);
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    saveHistory();
+    const [x, y] = getMousePos(e);
+    ctx.strokeStyle = document.getElementById('brushColor').value;
+    ctx.lineWidth = document.getElementById('brushSize').value;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    [lastX, lastY] = [x, y];
+  }
+
+  function stopDrawing() {
+    isDrawing = false;
+  }
+
+  function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return [
+      e.clientX - rect.left,
+      e.clientY - rect.top
+    ];
+  }
+
+  document.getElementById('brushColor').addEventListener('input', (e) => {
+    document.getElementById('colorPreview').style.background = e.target.value;
+  });
+
+  // === 调整 ===
+  function applyAdjustments() {
+    if (!originalImageData) return;
+    const brightness = parseInt(document.getElementById('brightness').value);
+    const contrast = parseInt(document.getElementById('contrast').value);
+    const saturation = parseInt(document.getElementById('saturation').value);
+
+    let imageData = cloneImageData(originalImageData);
+    const data = imageData.data;
+    const factorContrast = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+    for (let i = 0; i < data.length; i += 4) {
+      let r = data[i], g = data[i+1], b = data[i+2];
+
+      r += brightness;
+      g += brightness;
+      b += brightness;
+
+      r = factorContrast * (r - 128) + 128;
+      g = factorContrast * (g - 128) + 128;
+      b = factorContrast * (b - 128) + 128;
+
+      if (saturation !== 0) {
+        const gray = 0.2989 * r + 0.5870 * g + 0.1140 * b;
+        const satFactor = 1 + saturation / 100;
+        r = gray + (r - gray) * satFactor;
+        g = gray + (g - gray) * satFactor;
+        b = gray + (b - gray) * satFactor;
+      }
+
+      data[i] = Math.min(255, Math.max(0, r));
+      data[i+1] = Math.min(255, Math.max(0, g));
+      data[i+2] = Math.min(255, Math.max(0, b));
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  // === 滤镜 ===
+  function applyFilter(type) {
+    if (!originalImageData) {
+      alert('请先加载一张图片！');
+      return;
+    }
+    saveHistory();
+    let imageData = cloneImageData(originalImageData);
+    const data = imageData.data;
+
+    switch (type) {
+      case 'grayscale':
+        for (let i = 0; i < data.length; i += 4) {
+          const avg = 0.2989 * data[i] + 0.5870 * data[i+1] + 0.1140 * data[i+2];
+          data[i] = data[i+1] = data[i+2] = avg;
+        }
+        break;
+      case 'invert':
+        for (let i = 0; i < data.length; i += 4) {
+          data[i] = 255 - data[i];
+          data[i+1] = 255 - data[i+1];
+          data[i+2] = 255 - data[i+2];
+        }
+        break;
+      case 'sepia':
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i+1], b = data[i+2];
+          data[i] = Math.min(255, 0.393*r + 0.769*g + 0.189*b);
+          data[i+1] = Math.min(255, 0.349*r + 0.686*g + 0.168*b);
+          data[i+2] = Math.min(255, 0.272*r + 0.534*g + 0.131*b);
+        }
+        break;
+      case 'edge':
+        const tempData = new Uint8ClampedArray(data);
+        const w = canvas.width, h = canvas.height;
+        const kernelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+        const kernelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+        for (let y = 1; y < h - 1; y++) {
+          for (let x = 1; x < w - 1; x++) {
+            let px = 0, py = 0;
+            for (let ky = -1; ky <= 1; ky++) {
+              for (let kx = -1; kx <= 1; kx++) {
+                const idx = ((y + ky) * w + (x + kx)) * 4;
+                const gray = 0.2989 * tempData[idx] + 0.5870 * tempData[idx+1] + 0.1140 * tempData[idx+2];
+                px += gray * kernelX[(ky+1)*3 + (kx+1)];
+                py += gray * kernelY[(ky+1)*3 + (kx+1)];
+              }
+            }
+            const mag = Math.sqrt(px*px + py*py);
+            const val = Math.min(255, mag);
+            const i = (y * w + x) * 4;
+            data[i] = data[i+1] = data[i+2] = val;
+          }
+        }
+        break;
+      case 'blur':
+        const temp = new Uint8ClampedArray(data);
+        const width = canvas.width, height = canvas.height;
+        for (let y = 1; y < height - 1; y++) {
+          for (let x = 1; x < width - 1; x++) {
+            let r = 0, g = 0, b = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const idx = ((y + dy) * width + (x + dx)) * 4;
+                r += temp[idx];
+                g += temp[idx+1];
+                b += temp[idx+2];
+              }
+            }
+            const i = (y * width + x) * 4;
+            data[i] = r / 9;
+            data[i+1] = g / 9;
+            data[i+2] = b / 9;
+          }
+        }
+        break;
+      case 'binarize':
+        const threshold = 128;
+        for (let i = 0; i < data.length; i += 4) {
+          const gray = 0.2989 * data[i] + 0.5870 * data[i+1] + 0.1140 * data[i+2];
+          const val = gray > threshold ? 255 : 0;
+          data[i] = data[i+1] = data[i+2] = val;
+        }
+        break;
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    resetAdjustments();
+  }
+
+  // === 保存图像 ===
+  function saveImage() {
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'photoshop-lite-output.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+</script>
+
+</body>
+</html>
