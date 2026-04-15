@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>akadiao · 个人主页</title>
-    <!-- 引入 Google Fonts  -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <!-- Font Awesome 6 (免费图标库) -->
+    <title>akadiao · 时空枢纽</title>
+    <!-- Google Fonts & 科幻字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Leaflet 地图样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
             margin: 0;
@@ -17,13 +19,13 @@
 
         body {
             background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
             color: #eef4ff;
             line-height: 1.5;
             padding: 2rem 1.5rem;
+            position: relative;
         }
 
-        /* 科技感扫描线效果 (细微) */
         body::before {
             content: "";
             position: fixed;
@@ -43,20 +45,29 @@
             z-index: 2;
         }
 
-        /* 头部区域 = 身份卡 */
+        /* ========== 身份卡 - 左右布局 ========== */
         .hero {
             background: rgba(12, 20, 30, 0.55);
             backdrop-filter: blur(12px);
             border-radius: 2.5rem;
             border: 1px solid rgba(0, 255, 255, 0.25);
             box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(0, 255, 255, 0.1) inset;
-            padding: 2rem 2rem;
-            margin-bottom: 2.5rem;
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
             transition: all 0.2s ease;
         }
 
+        /* 左侧信息区 - 约占2/3 */
+        .hero-info {
+            flex: 2;
+            min-width: 280px;
+        }
+
         .hero h1 {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 700;
             background: linear-gradient(135deg, #FFFFFF, #7bc5ff, #2dd4bf);
             -webkit-background-clip: text;
@@ -70,36 +81,171 @@
         .badge-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.8rem;
-            margin: 1rem 0 0.8rem;
+            gap: 0.6rem;
+            margin: 0.8rem 0;
         }
 
         .badge {
             background: rgba(0, 255, 255, 0.08);
             border: 1px solid rgba(0, 255, 255, 0.3);
             border-radius: 40px;
-            padding: 0.3rem 1rem;
-            font-size: 0.8rem;
+            padding: 0.25rem 0.9rem;
+            font-size: 0.75rem;
             font-weight: 500;
             font-family: 'JetBrains Mono', monospace;
             backdrop-filter: blur(4px);
         }
 
-        .badge i {
-            margin-right: 6px;
-            color: #2dd4bf;
-        }
-
         .desc-text {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: #bfd9ff;
-            max-width: 85%;
-            margin-top: 0.8rem;
             border-left: 3px solid #2dd4bf;
             padding-left: 1rem;
+            margin-top: 0.8rem;
         }
 
-        /* 网格布局 — 科技感卡片流 */
+        /* 右侧时空模块 - 约占1/3 */
+        .hero-spacetime {
+            flex: 1.2;
+            min-width: 300px;
+            background: rgba(4, 15, 30, 0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 1.8rem;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            padding: 1rem 1.2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 180, 255, 0.1);
+        }
+
+        .hero-spacetime::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            border-radius: 1.8rem;
+        }
+
+        /* 时间显示行 */
+        .time-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .time-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: #7ec8ff;
+            text-transform: uppercase;
+        }
+
+        #liveClockDisplay {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #e2f2ff;
+            text-shadow: 0 0 8px #0cf;
+            letter-spacing: 2px;
+            background: linear-gradient(180deg, #fff 0%, #b0f0ff 80%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* 微型地图容器 */
+        .mini-map-wrapper {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1.5px solid #0cf;
+            box-shadow: 0 0 20px #00aaff44, inset 0 0 10px #003344;
+            background: #030a14;
+            height: 130px;
+            margin-bottom: 8px;
+        }
+
+        #miniMap {
+            width: 100%;
+            height: 100%;
+            background: #07121c;
+        }
+
+        /* IP信息栏 */
+        .ip-info-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.8rem;
+            color: #b5f0ff;
+            text-shadow: 0 0 5px #0cf;
+            padding: 0 2px;
+        }
+
+        .ip-address {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ip-address i {
+            color: #2dd4bf;
+            font-size: 0.7rem;
+        }
+
+        #ipDisplaySmall {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .location-tag-small {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(0, 40, 60, 0.5);
+            padding: 2px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        #locationDisplaySmall {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .status-led-small {
+            width: 8px;
+            height: 8px;
+            background: #0f0;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #0f0;
+            animation: pulseLed 1.5s infinite;
+            margin-right: 4px;
+        }
+
+        @keyframes pulseLed {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; box-shadow: 0 0 12px #0f0; }
+            100% { opacity: 0.6; }
+        }
+
+        /* 地图控件隐藏/美化 */
+        .leaflet-control-attribution { display: none; }
+        .mini-map-wrapper .leaflet-control-zoom {
+            display: none;
+        }
+
+        /* ========== 原有卡片样式 ========== */
         .section-title {
             font-size: 1.7rem;
             font-weight: 600;
@@ -111,27 +257,19 @@
             padding-bottom: 0.5rem;
             width: fit-content;
         }
-        .section-title i {
-            color: #2dd4bf;
-            font-size: 1.5rem;
-        }
-
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.4rem;
             margin-bottom: 2rem;
         }
-
-        /* 玻璃卡片 */
         .glass-card {
             background: rgba(18, 25, 40, 0.55);
             backdrop-filter: blur(8px);
             border-radius: 1.8rem;
             border: 1px solid rgba(72, 187, 255, 0.2);
-            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transition: all 0.25s;
             overflow: hidden;
-            position: relative;
         }
         .glass-card:hover {
             transform: translateY(-4px);
@@ -139,7 +277,6 @@
             box-shadow: 0 20px 30px -12px rgba(0, 200, 255, 0.2);
             background: rgba(20, 32, 50, 0.7);
         }
-
         .card-link {
             display: flex;
             align-items: center;
@@ -148,33 +285,13 @@
             text-decoration: none;
             color: #eef4ff;
             font-weight: 500;
-            transition: 0.1s;
             font-size: 1rem;
         }
         .card-link i {
             font-size: 1.4rem;
             width: 32px;
             color: #2dd4bf;
-            transition: 0.2s;
         }
-        .card-link span {
-            flex: 1;
-            word-break: break-word;
-        }
-        .card-link:hover i {
-            transform: translateX(3px);
-            color: #5ee0d4;
-        }
-        /* 特殊工具类双行描述 */
-        .small-desc {
-            font-size: 0.75rem;
-            opacity: 0.7;
-            margin-top: 4px;
-            display: block;
-            font-family: monospace;
-        }
-
-        /* 内部特殊布局（例如双排inline） */
         .inline-badge {
             font-size: 0.7rem;
             background: rgba(0,0,0,0.4);
@@ -182,167 +299,103 @@
             padding: 2px 8px;
             margin-left: 8px;
         }
-
-        /* 游戏地图卡稍微特别 */
-        .subnote {
-            font-size: 0.7rem;
-            color: #8aaee0;
-            margin-top: 5px;
-            display: block;
-        }
-
-        hr {
-            margin: 1rem 0;
-            border-color: #2dd4bf30;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            padding: 1.5rem;
-            font-size: 0.8rem;
-            border-top: 1px solid rgba(45,212,191,0.2);
-            color: #7d9ed7;
-        }
-
-        @media (max-width: 680px) {
-            body {
-                padding: 1rem;
-            }
-            .hero h1 {
-                font-size: 2.2rem;
-            }
-            .desc-text {
-                max-width: 100%;
-            }
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* 特殊分组样式：让搜索引擎一行紧凑但依旧优雅 */
         .compact-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
             gap: 0.8rem;
         }
-        .compact-card .card-link {
-            padding: 0.7rem 1rem;
-        }
-        .glow-text {
-            text-shadow: 0 0 4px rgba(0,255,255,0.3);
-        }
-        a {
-            text-decoration: none;
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(45,212,191,0.2);
+            color: #7d9ed7;
         }
         .section-icon {
             background: #0f172a;
             border-radius: 40px;
             padding: 4px 12px;
             font-size: 0.7rem;
-            font-weight: normal;
             margin-left: 12px;
-            letter-spacing: 0;
+        }
+
+        @media (max-width: 680px) {
+            body { padding: 1rem; }
+            .hero h1 { font-size: 2rem; }
+            .hero-spacetime { min-width: 260px; }
+            .time-row { flex-wrap: wrap; gap: 4px; }
+            #liveClockDisplay { font-size: 0.95rem; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- 头部简介 - 科技风身份区 -->
+    <!-- ========== 身份卡 - 整合时空模块在右侧 ========== -->
     <div class="hero">
-        <h1>akadiao 个人主页<span style="font-size: 1.2rem; background: none; -webkit-background-clip: unset; color: #7bc5ff;">✦</span></h1>
-        <div class="badge-group">
-            <span class="badge"><i class="fas fa-code"></i> Windows 10 App Dev</span>
-            <span class="badge"><i class="fas fa-brain"></i> 工业视觉 / C#</span>
-            <span class="badge"><i class="fas fa-cube"></i> 个人收藏夹</span>
+        <!-- 左侧：个人信息 -->
+        <div class="hero-info">
+            <h1>akadiao 个人主页<span style="font-size: 1.2rem; background: none; -webkit-background-clip: unset; color: #7bc5ff;">✦</span></h1>
+            <div class="badge-group">
+                <span class="badge"><i class="fas fa-code"></i> Windows 10 App Dev</span>
+                <span class="badge"><i class="fas fa-brain"></i> 工业视觉 / C#</span>
+                <span class="badge"><i class="fas fa-cube"></i> 个人收藏夹</span>
+            </div>
+            <div class="desc-text">
+                <i class="fas fa-map-marker-alt" style="margin-right: 8px;"></i> 站点汇总 <br>
+                Windows 10 应用开发 | 自动化设备 | 数字花园
+            </div>
         </div>
-        <div class="desc-text">
-            <i class="fas fa-map-marker-alt" style="margin-right: 8px;"></i> 站点汇总 <br>
-            Windows 10 应用开发 | 自动化设备 | 数字花园
+
+        <!-- 右侧：时空模块（时间+IP地图） -->
+        <div class="hero-spacetime">
+            <!-- 时间显示 -->
+            <div class="time-row">
+                <span class="time-label"><i class="far fa-clock" style="margin-right: 4px;"></i>SYS.CHRON</span>
+                <span id="liveClockDisplay">----.--.-- --:--:--</span>
+            </div>
+            <!-- 微型地图 -->
+            <div class="mini-map-wrapper">
+                <div id="miniMap"></div>
+            </div>
+            <!-- IP与位置信息 -->
+            <div class="ip-info-bar">
+                <div class="ip-address">
+                    <i class="fas fa-network-wired"></i>
+                    <span id="ipDisplaySmall">--.---.---.--</span>
+                </div>
+                <div class="location-tag-small">
+                    <span class="status-led-small"></span>
+                    <i class="fas fa-map-pin" style="font-size: 0.6rem;"></i>
+                    <span id="locationDisplaySmall">定位中...</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 内部工具快速入口（原首页两个核心链接） -->
+    <!-- ========== 原有工具快速入口 ========== -->
     <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 1rem;">
-        
-		<div class="glass-card">
-            <a class="card-link" href="https://blog.csdn.net/akadiao?type=blog">
-                <i class="fas fa-cube"></i>
-                <span>🎯 个人博客 · 视觉图像 <span class="inline-badge">博客主页</span></span>
-                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
-            </a>
-        </div>
-		
-		<div class="glass-card">
-            <a class="card-link" href="/产品部三车间CCD机台匹配工具.HTML">
-                <i class="fas fa-microchip"></i>
-                <span>🔧 CCD机台匹配工具 <span class="inline-badge">产线核心</span></span>
-                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
-            </a>
-        </div>
-		
-		
-		<div class="glass-card">
-            <a class="card-link" href="/实时人脸识别系统.HTML">
-                <i class="fas fa-user-astronaut"></i>
-                <span>📹 人脸检测 · 在线检测 <span class="inline-badge">人脸识别</span></span>
-                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
-            </a>
-        </div>
-		
-		
-        <div class="glass-card">
-            <a class="card-link" href="/open_camera_grab_picture5.html">
-                <i class="fas fa-camera"></i>
-                <span>📸 拍照工具 · 视觉采集 <span class="inline-badge">实时抓拍</span></span>
-                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
-            </a>
-        </div>
-		
-		<div class="glass-card">
-            <a class="card-link" href="/Photoshop.HTML">
-                <i class="fas fa-star"></i>
-                <span>💻 图像处理 · 在线处理 <span class="inline-badge">简易Photoshop</span></span>
-                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
-            </a>
-        </div>
-		
-		<div class="glass-card">
-            <a class="card-link" href="/CAD.HTML">
-                <i class="fas fa-drafting-compass"></i>
-                <span>⛏️ 简易绘图 · 几何绘图 <span class="inline-badge">简易CAD</span></span>
-                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
-            </a>
-        </div>
-		
-		<div class="glass-card">
-            <a class="card-link" href="/3D粒子流体特效2.HTML">
-                <i class="fas fa-atom"></i>
-                <span>🧮 粒子模拟 · 3D显示 <span class="inline-badge">模拟显示</span></span>
-                <i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i>
-            </a>
-        </div>
-		
-
-		
+        <div class="glass-card"><a class="card-link" href="https://blog.csdn.net/akadiao?type=blog"><i class="fas fa-cube"></i><span>🎯 个人博客 · 视觉图像 <span class="inline-badge">博客主页</span></span><i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i></a></div>
+        <div class="glass-card"><a class="card-link" href="/产品部三车间CCD机台匹配工具.HTML"><i class="fas fa-microchip"></i><span>🔧 CCD机台匹配工具 <span class="inline-badge">产线核心</span></span><i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i></a></div>
+        <div class="glass-card"><a class="card-link" href="/实时人脸识别系统.HTML"><i class="fas fa-user-astronaut"></i><span>📹 人脸检测 · 在线检测 <span class="inline-badge">人脸识别</span></span><i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i></a></div>
+        <div class="glass-card"><a class="card-link" href="/open_camera_grab_picture5.html"><i class="fas fa-camera"></i><span>📸 拍照工具 · 视觉采集 <span class="inline-badge">实时抓拍</span></span><i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i></a></div>
+        <div class="glass-card"><a class="card-link" href="/Photoshop.HTML"><i class="fas fa-star"></i><span>💻 图像处理 · 在线处理 <span class="inline-badge">简易Photoshop</span></span><i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i></a></div>
+        <div class="glass-card"><a class="card-link" href="/CAD.HTML"><i class="fas fa-drafting-compass"></i><span>⛏️ 简易绘图 · 几何绘图 <span class="inline-badge">简易CAD</span></span><i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i></a></div>
+        <div class="glass-card"><a class="card-link" href="/3D粒子流体特效2.HTML"><i class="fas fa-atom"></i><span>🧮 粒子模拟 · 3D显示 <span class="inline-badge">模拟显示</span></span><i class="fas fa-arrow-right" style="font-size: 0.9rem; opacity: 0.6;"></i></a></div>
     </div>
 
-    <!-- ================= 搜索引擎区 ================= -->
-    <div class="section-title">
-        <i class="fas fa-search"></i> 智联引擎 · 星海检索
-        <span class="section-icon">AI enhanced</span>
-    </div>
+    <!-- 搜索引擎区 -->
+    <div class="section-title"><i class="fas fa-search"></i> 智联引擎 · 星海检索<span class="section-icon">AI enhanced</span></div>
     <div class="compact-grid">
-        <div class="glass-card compact-card"><a class="card-link" href="https://yandex.com/" target="_blank" rel="noopener"><i class="fas fa-globe"></i><span>俄罗斯 Yandex</span></a></div>
-        <div class="glass-card compact-card"><a class="card-link" href="https://www.naver.com/" target="_blank" rel="noopener"><i class="fas fa-globe"></i><span>韩国 NAVER</span></a></div>
-        <div class="glass-card compact-card"><a class="card-link" href="https://www.sajasearch.com/" target="_blank" rel="noopener"><i class="fas fa-dice-d6"></i><span>SajaSearch</span></a></div>
-        <div class="glass-card compact-card"><a class="card-link" href="https://www.lycos.com/" target="_blank" rel="noopener"><i class="fas fa-dog"></i><span>Lycos</span></a></div>
-        <div class="glass-card compact-card"><a class="card-link" href="https://akavita.com/ru/" target="_blank" rel="noopener"><i class="fas fa-feather-alt"></i><span>Akavita</span></a></div>
-        <div class="glass-card compact-card"><a class="card-link" href="https://duckduckgo.com/" target="_blank" rel="noopener"><i class="fas fa-duck"></i><span>DuckDuckGo</span></a></div>
-        <div class="glass-card compact-card"><a class="card-link" href="https://metaso.cn/" target="_blank" rel="noopener"><i class="fas fa-robot"></i><span>秘塔AI搜索</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://yandex.com/" target="_blank"><i class="fas fa-globe"></i><span>俄罗斯 Yandex</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.naver.com/" target="_blank"><i class="fas fa-globe"></i><span>韩国 NAVER</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.sajasearch.com/" target="_blank"><i class="fas fa-dice-d6"></i><span>SajaSearch</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://www.lycos.com/" target="_blank"><i class="fas fa-dog"></i><span>Lycos</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://akavita.com/ru/" target="_blank"><i class="fas fa-feather-alt"></i><span>Akavita</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://duckduckgo.com/" target="_blank"><i class="fas fa-duck"></i><span>DuckDuckGo</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://metaso.cn/" target="_blank"><i class="fas fa-robot"></i><span>秘塔AI搜索</span></a></div>
     </div>
 
-    <!-- 网站收藏 (主要) -->
+    <!-- 数字藏馆 -->
     <div class="section-title"><i class="fas fa-bookmark"></i> 数字藏馆 · 灵感泉涌</div>
     <div class="card-grid">
         <div class="glass-card"><a class="card-link" href="https://ayouth.top/ayouth/video.html" target="_blank"><i class="fas fa-film"></i><span>视频资源</span></a></div>
@@ -373,7 +426,7 @@
         <div class="glass-card"><a class="card-link" href="https://matrix67.itch.io/pi-day-challenge" target="_blank"><i class="fas fa-chalkboard"></i><span>画圆挑战</span></a></div>
     </div>
 
-    <!-- 另类工具 + 未来工具 -->
+    <!-- 极客玩具 -->
     <div class="section-title"><i class="fas fa-magic"></i> 极客玩具 · 另类工坊</div>
     <div class="card-grid">
         <div class="glass-card"><a class="card-link" href="https://www.futuretools.io/" target="_blank"><i class="fas fa-rocket"></i><span>未来工具合集</span></a></div>
@@ -390,7 +443,7 @@
         <div class="glass-card"><a class="card-link" href="https://cts.chazhi.net/" target="_blank"><i class="fas fa-feather"></i><span>藏头诗生成器</span></a></div>
     </div>
 
-    <!-- 正经工具 + 开发资源 -->
+    <!-- 开发利器 -->
     <div class="section-title"><i class="fas fa-laptop-code"></i> 开发利器 · 正经工坊</div>
     <div class="card-grid">
         <div class="glass-card"><a class="card-link" href="https://www.zybuluo.com/cmd/" target="_blank"><i class="fas fa-file-alt"></i><span>Makdown编辑器</span></a></div>
@@ -414,7 +467,7 @@
         <div class="glass-card"><a class="card-link" href="https://github.com/TheMRLL/WinXray" target="_blank"><i class="fab fa-github"></i><span>WinXray</span></a></div>
     </div>
 
-    <!-- 音视频/图片处理 -->
+    <!-- 影音暗房 -->
     <div class="section-title"><i class="fas fa-photo-video"></i> 影音暗房 · 创意工坊</div>
     <div class="card-grid">
         <div class="glass-card"><a class="card-link" href="https://www.photopea.com/" target="_blank"><i class="fas fa-edit"></i><span>在线 Photoshop</span></a></div>
@@ -430,7 +483,7 @@
         <div class="glass-card"><a class="card-link" href="https://www.veed.io/zh-CN/tools/crop-video" target="_blank"><i class="fas fa-edit"></i><span>VEED 剪辑</span></a></div>
     </div>
 
-    <!-- 科普在线 & 可视化 -->
+    <!-- 数据宇宙 -->
     <div class="section-title"><i class="fas fa-glasses"></i> 数据宇宙 · 科普视界</div>
     <div class="card-grid">
         <div class="glass-card"><a class="card-link" href="https://projector.tensorflow.org/" target="_blank"><i class="fas fa-draw-polygon"></i><span>3D张量可视化</span></a></div>
@@ -446,7 +499,7 @@
         <div class="glass-card"><a class="card-link" href="https://academictree.org/" target="_blank"><i class="fas fa-tree"></i><span>学术家谱</span></a></div>
     </div>
 
-    <!-- 游戏 + 地图生成器 -->
+    <!-- 游戏厅 -->
     <div class="section-title"><i class="fas fa-gamepad"></i> 异次元游戏厅 · 随机世界</div>
     <div class="card-grid">
         <div class="glass-card"><a class="card-link" href="https://maze.toys/" target="_blank"><i class="fas fa-puzzle-piece"></i><span>迷宫</span></a></div>
@@ -455,7 +508,7 @@
         <div class="glass-card"><a class="card-link" href="https://www.pacogames.com/" target="_blank"><i class="fas fa-globe"></i><span>Paco Games</span></a></div>
         <div class="glass-card"><a class="card-link" href="https://www.wo1wan.com/" target="_blank"><i class="fas fa-dice"></i><span>wo1wan 游戏</span></a></div>
         <div class="glass-card"><a class="card-link" href="https://kbhgames.com/" target="_blank"><i class="fas fa-joystick"></i><span>KBH Games</span></a></div>
-        <div class="glass-card"><a class="card-link" href="https://donjon.bin.sh/fantasy/dungeon/" target="_blank"><i class="fas fa-map"></i><span>随机游戏地图生成器</span><span class="subnote">Dungeon</span></a></div>
+        <div class="glass-card"><a class="card-link" href="https://donjon.bin.sh/fantasy/dungeon/" target="_blank"><i class="fas fa-map"></i><span>随机游戏地图生成器</span></a></div>
         <div class="glass-card"><a class="card-link" href="https://inkwellideas.com/free-tools/random-city-map-generator/" target="_blank"><i class="fas fa-city"></i><span>随机城市地图生成器</span></a></div>
         <div class="glass-card"><a class="card-link" href="https://donjon.bin.sh/world/" target="_blank"><i class="fas fa-globe"></i><span>随机星球地图生成器</span></a></div>
         <div class="glass-card"><a class="card-link" href="https://rollforfantasy.com/tools/map-creator.php" target="_blank"><i class="fas fa-draw-polygon"></i><span>随机平面地图生成器</span></a></div>
@@ -467,5 +520,116 @@
         <span style="font-family: monospace;">✦ 工善其事 先利其器 ✦</span>
     </footer>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    (function(){
+        "use strict";
+        // ---------- 实时时钟 (精简版) ----------
+        function updateClock() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
+            const clockEl = document.getElementById('liveClockDisplay');
+            if(clockEl) clockEl.innerText = timeString;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // ---------- 微型地图 ----------
+        const map = L.map('miniMap', {
+            center: [20, 0],
+            zoom: 2,
+            zoomControl: false,
+            attributionControl: false,
+            dragging: true,
+            scrollWheelZoom: false,
+            doubleClickZoom: true,
+            boxZoom: false,
+            keyboard: false
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            subdomains: 'abcd',
+            maxZoom: 18
+        }).addTo(map);
+
+        // 全息标记图标 (精简版)
+        const miniIcon = L.divIcon({
+            html: `<div style="position: relative; width: 22px; height: 22px;">
+                    <div style="position: absolute; width: 22px; height: 22px; border: 2.5px solid #0cf; border-radius: 50%; box-shadow: 0 0 20px #0cf; background: rgba(0,200,255,0.15); animation: pulseMini 1.8s infinite;"></div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 9px; height: 9px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px #fff; border: 1.5px solid #aaf0ff;"></div>
+                   </div>
+                   <style>@keyframes pulseMini{0%{transform:scale(0.9);opacity:0.7;}50%{transform:scale(1.2);opacity:0.4;}100%{transform:scale(0.9);opacity:0.7;}}</style>`,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11]
+        });
+
+        const ipDisplay = document.getElementById('ipDisplaySmall');
+        const locationDisplay = document.getElementById('locationDisplaySmall');
+        let currentMarker = null;
+
+        async function fetchIPLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                if (!response.ok) throw new Error('网络异常');
+                const data = await response.json();
+                
+                const ip = data.ip || '未知';
+                const city = data.city || '';
+                const region = data.region || '';
+                const country = data.country_name || '';
+                const latitude = parseFloat(data.latitude);
+                const longitude = parseFloat(data.longitude);
+                
+                ipDisplay.innerText = ip;
+                
+                // 精简位置显示
+                let locStr = '';
+                if (city && city !== 'Unknown') locStr = city;
+                else if (region) locStr = region;
+                else if (country) locStr = country;
+                else locStr = '未知位置';
+                
+                // 截断过长的位置名
+                if (locStr.length > 10) locStr = locStr.substring(0, 8) + '..';
+                locationDisplay.innerText = locStr;
+                
+                if (!isNaN(latitude) && !isNaN(longitude)) {
+                    map.setView([latitude, longitude], 6);
+                    if (currentMarker) map.removeLayer(currentMarker);
+                    currentMarker = L.marker([latitude, longitude], { icon: miniIcon }).addTo(map);
+                    L.circle([latitude, longitude], { 
+                        radius: 50000, 
+                        color: '#0cf', 
+                        fillOpacity: 0.05, 
+                        weight: 1,
+                        interactive: false
+                    }).addTo(map);
+                }
+            } catch (e) {
+                console.warn('IP定位失败', e);
+                ipDisplay.innerText = '模拟坐标';
+                locationDisplay.innerText = '演示模式';
+                // 默认显示中国区域
+                map.setView([31.23, 121.47], 5);
+                if (currentMarker) map.removeLayer(currentMarker);
+                currentMarker = L.marker([31.23, 121.47], { icon: miniIcon }).addTo(map);
+            }
+        }
+
+        fetchIPLocation();
+        
+        // 窗口大小变化时刷新地图
+        window.addEventListener('resize', () => {
+            setTimeout(() => map.invalidateSize(), 100);
+        });
+    })();
+</script>
 </body>
 </html>
