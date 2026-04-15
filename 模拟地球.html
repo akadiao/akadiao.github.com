@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>酷炫3D地球效果 - Three.js</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            color: white;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 16px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            pointer-events: none;
+            font-size: 14px;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            border-left: 3px solid #00aaff;
+        }
+        #controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            color: rgba(255,255,255,0.7);
+            background: rgba(0,0,0,0.4);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            font-family: monospace;
+        }
+        @media (max-width: 600px) {
+            #info { font-size: 10px; top: 10px; left: 10px; }
+            #controls-hint { font-size: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        🌍 酷炫3D地球 | 动态星空 | 大气层光晕
+    </div>
+    <div id="controls-hint">
+        🖱️ 鼠标拖拽旋转视角 | 滚动缩放
+    </div>
+
+    <!-- 引入 Three.js 核心库以及扩展组件 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        
+        // --- 初始化场景、相机、渲染器 ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x010118); // 深邃星空蓝黑背景
+        scene.fog = new THREE.FogExp2(0x010118, 0.0003); // 轻微雾效增强深邃感
+
+        // 透视相机: 视野, 宽高比, 近平面, 远平面
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 3.5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        document.body.appendChild(renderer.domElement);
+
+        // --- 后期特效: 绽放光晕 (Bloom) 增强酷炫感 ---
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.3, 0.85);
+        bloomPass.threshold = 0.1;  // 亮度阈值
+        bloomPass.strength = 0.6;
+        bloomPass.radius = 0.5;
+        
+        const effectComposer = new EffectComposer(renderer);
+        effectComposer.addPass(renderScene);
+        effectComposer.addPass(bloomPass);
+        
+        // --- 轨道控制，允许用户交互，体验酷炫旋转 ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;          // 惯性效果
+        controls.dampingFactor = 0.05;
+        controls.rotateSpeed = 1.0;
+        controls.zoomSpeed = 1.2;
+        controls.enableZoom = true;
+        controls.enablePan = false;
+        controls.autoRotate = false;
+        controls.target.set(0, 0, 0);
+        
+        // --- 辅助增强: 环境光 + 点光源，让地球材质更有质感 ---
+        // 环境光
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        scene.add(ambientLight);
+        // 主光源方向光模拟太阳
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 3, 5);
+        scene.add(dirLight);
+        // 背面补光，让暗部不至于太暗
+        const backLight = new THREE.DirectionalLight(0x88aaff, 0.4);
+        backLight.position.set(-3, -1, -4);
+        scene.add(backLight);
+        
+        // 一个小点光源围绕地球旋转增加动态光效 (可选)
+        const colorLight = new THREE.PointLight(0x2266ff, 0.5);
+        colorLight.position.set(2, 1, 3);
+        scene.add(colorLight);
+        
+        // --- 创建地球材质与纹理 ---
+        // 高质量贴图加载 (使用 Three.js 示例中的高分辨率地球贴图 + 云层贴图，为了确保效果，使用可靠CDN)
+        // 地球颜色贴图
+        const earthMapUrl = 'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg';
+        // 地球凹凸贴图 (法线贴图)
+        const earthNormalMapUrl = 'https://threejs.org/examples/textures/planets/earth_normal_2048.jpg';
+        // 地球云层贴图 (云层叠加)
+        const earthCloudMapUrl = 'https://threejs.org/examples/textures/planets/earth_clouds_1024.png';
+        // 高光贴图 (镜面反射)
+        const earthSpecularMapUrl = 'https://threejs.org/examples/textures/planets/earth_specular_2048.jpg';
+        
+        // 纹理加载器
+        const loader = new THREE.TextureLoader();
+        
+        // 地球网格材质 (MeshPhongMaterial 结合多种贴图，展现逼真光照)
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            map: loader.load(earthMapUrl),
+            normalMap: loader.load(earthNormalMapUrl),
+            specularMap: loader.load(earthSpecularMapUrl),
+            specular: new THREE.Color('grey'),
+            shininess: 5,
+            emissive: new THREE.Color(0x002244),
+            emissiveIntensity: 0.12
+        });
+        
+        const earthGeometry = new THREE.SphereGeometry(1.0, 128, 128); // 高细分球体
+        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        scene.add(earth);
+        
+        // --- 云层效果: 半透明叠加层，自转速度略快于地球，增强立体感 ---
+        const cloudMaterial = new THREE.MeshPhongMaterial({
+            map: loader.load(earthCloudMapUrl),
+            transparent: true,
+            opacity: 0.2,
+            blending: THREE.AdditiveBlending
+        });
+        const cloudGeometry = new THREE.SphereGeometry(1.01, 128, 128);
+        const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+        scene.add(clouds);
+        
+        // --- 大气层外发光效果 (光晕球体) ---
+        // 创建一个稍微大一点的球体，使用Shader或简单的透明发光材质
+        const atmosMaterial = new THREE.MeshPhongMaterial({
+            color: 0x88aaff,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide  // 渲染背面使得地球边缘有光晕感
+        });
+        const atmosGeometry = new THREE.SphereGeometry(1.08, 64, 64);
+        const atmosphere = new THREE.Mesh(atmosGeometry, atmosMaterial);
+        scene.add(atmosphere);
+        
+        // 额外添加一个更外层的 glow 粒子环? 增强酷炫 (简单光晕环)
+        const glowRingGeometry = new THREE.SphereGeometry(1.15, 32, 32);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+            color: 0x4488ff,
+            transparent: true,
+            opacity: 0.05,
+            side: THREE.BackSide
+        });
+        const outerGlow = new THREE.Mesh(glowRingGeometry, glowMaterial);
+        scene.add(outerGlow);
+        
+        // --- 星空粒子系统: 动态闪烁星星，增强深邃宇宙感 ---
+        const starCount = 2500;
+        const starGeometry = new THREE.BufferGeometry();
+        const starPositions = new Float32Array(starCount * 3);
+        const starColors = new Float32Array(starCount * 3);
+        
+        for (let i = 0; i < starCount; i++) {
+            // 分布在较大的球体内或全空间，但为了视觉效果，分布在半径 200-500 范围内
+            const radius = 180 + Math.random() * 200;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            starPositions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+            starPositions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
+            starPositions[i*3+2] = radius * Math.cos(phi);
+            
+            // 星星颜色: 偏白、淡蓝、淡黄
+            const colorChoice = Math.random();
+            if (colorChoice < 0.7) {
+                starColors[i*3] = 1.0;
+                starColors[i*3+1] = 1.0;
+                starColors[i*3+2] = 1.0;
+            } else if (colorChoice < 0.85) {
+                starColors[i*3] = 0.9;
+                starColors[i*3+1] = 0.8;
+                starColors[i*3+2] = 0.6;
+            } else {
+                starColors[i*3] = 0.6;
+                starColors[i*3+1] = 0.7;
+                starColors[i*3+2] = 1.0;
+            }
+            // 随机亮度微调
+            const brightness = 0.6 + Math.random() * 0.5;
+            starColors[i*3] *= brightness;
+            starColors[i*3+1] *= brightness;
+            starColors[i*3+2] *= brightness;
+        }
+        
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+        
+        const starMaterial = new THREE.PointsMaterial({ size: 0.25, vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending });
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+        
+        // 第二层更远的小星星 (大量细小粒子)
+        const starFieldCount = 4000;
+        const starFieldGeo = new THREE.BufferGeometry();
+        const starFieldPos = new Float32Array(starFieldCount * 3);
+        for (let i = 0; i < starFieldCount; i++) {
+            // 分布在更大范围，且随机分布在立方体区域，营造深度
+            starFieldPos[i*3] = (Math.random() - 0.5) * 800;
+            starFieldPos[i*3+1] = (Math.random() - 0.5) * 500;
+            starFieldPos[i*3+2] = (Math.random() - 0.5) * 300 - 100;
+        }
+        starFieldGeo.setAttribute('position', new THREE.BufferAttribute(starFieldPos, 3));
+        const starFieldMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+        const starField = new THREE.Points(starFieldGeo, starFieldMat);
+        scene.add(starField);
+        
+        // --- 动态粒子环: 围绕地球的粒子光环，增加科技感 ---
+        const ringParticleCount = 1800;
+        const ringGeo = new THREE.BufferGeometry();
+        const ringPositions = new Float32Array(ringParticleCount * 3);
+        const ringColorsArr = new Float32Array(ringParticleCount * 3);
+        
+        for (let i = 0; i < ringParticleCount; i++) {
+            // 环形半径 1.35 到 1.65 之间，扁平分布
+            const radiusRing = 1.35 + Math.random() * 0.3;
+            const angle = Math.random() * Math.PI * 2;
+            const yOffset = (Math.random() - 0.5) * 0.25; // 稍微扁平环
+            const x = Math.cos(angle) * radiusRing;
+            const z = Math.sin(angle) * radiusRing;
+            const y = yOffset * 0.8;
+            ringPositions[i*3] = x;
+            ringPositions[i*3+1] = y;
+            ringPositions[i*3+2] = z;
+            
+            // 颜色根据角度渐变: 蓝紫色到青色
+            const mixFactor = (angle / (Math.PI * 2));
+            const r = 0.2 + Math.sin(angle) * 0.3;
+            const g = 0.4 + Math.cos(angle * 1.5) * 0.4;
+            const b = 0.8 + Math.sin(angle * 2) * 0.2;
+            ringColorsArr[i*3] = r;
+            ringColorsArr[i*3+1] = g;
+            ringColorsArr[i*3+2] = b;
+        }
+        ringGeo.setAttribute('position', new THREE.BufferAttribute(ringPositions, 3));
+        ringGeo.setAttribute('color', new THREE.BufferAttribute(ringColorsArr, 3));
+        const ringParticleMat = new THREE.PointsMaterial({ size: 0.012, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending });
+        const ringParticles = new THREE.Points(ringGeo, ringParticleMat);
+        scene.add(ringParticles);
+        
+        // --- 额外: 流星效果? 简化的随机移动粒子 (为了性能，不做过多的粒子系统，添加几个光晕精灵) ---
+        // 创建几个飘浮的光点围绕地球 (装饰)
+        const glowSprites = [];
+        const spriteCount = 30;
+        const spriteCanvas = document.createElement('canvas');
+        spriteCanvas.width = 32;
+        spriteCanvas.height = 32;
+        const ctx = spriteCanvas.getContext('2d');
+        ctx.fillStyle = 'rgba(100, 180, 255, 0)';
+        ctx.fillRect(0, 0, 32, 32);
+        ctx.beginPath();
+        ctx.arc(16, 16, 8, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(80, 160, 255, 0.8)';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(16, 16, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(200, 220, 255, 1)';
+        ctx.fill();
+        const spriteTexture = new THREE.CanvasTexture(spriteCanvas);
+        
+        for (let i = 0; i < spriteCount; i++) {
+            const spriteMaterial = new THREE.SpriteMaterial({ map: spriteTexture, color: 0x88aaff, blending: THREE.AdditiveBlending });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            // 随机位置在距离地球 1.2 到 1.8 的范围内
+            const rad = 1.2 + Math.random() * 0.7;
+            const thetaSpr = Math.random() * Math.PI * 2;
+            const phiSpr = Math.acos(2 * Math.random() - 1);
+            sprite.position.x = rad * Math.sin(phiSpr) * Math.cos(thetaSpr);
+            sprite.position.y = rad * Math.sin(phiSpr) * Math.sin(thetaSpr);
+            sprite.position.z = rad * Math.cos(phiSpr);
+            sprite.scale.set(0.03, 0.03, 1);
+            scene.add(sprite);
+            glowSprites.push(sprite);
+        }
+        
+        // --- 简单动画变量 ---
+        let time = 0;
+        
+        // 为了让星星闪烁，可以在动画中动态改变透明度? 更高级的可以单独控制，但为了性能，整体星空缓慢旋转
+        // 让星空整体缓慢自转，产生宇宙旋转感
+        
+        // --- 辅助: 添加一个很 subtle 的镜头光晕效果? 可以用简单光晕精灵, 但为了简洁且酷炫，Bloom已足够 ---
+        
+        // --- 动画循环 & 动态效果 ---
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.005;
+            
+            // 地球自转 (经典效果)
+            earth.rotation.y += 0.0025;
+            // 云层旋转稍快，模拟大气流动
+            clouds.rotation.y += 0.0032;
+            // 大气层和光环跟随地球自转视觉不太明显，但为了协调，缓慢旋转
+            atmosphere.rotation.y += 0.001;
+            outerGlow.rotation.y -= 0.0005;
+            
+            // 粒子光环整体缓慢自转
+            ringParticles.rotation.y += 0.001;
+            ringParticles.rotation.x = Math.sin(time * 0.2) * 0.1;
+            ringParticles.rotation.z = Math.cos(time * 0.3) * 0.05;
+            
+            // 动态光源旋转，增加光影变化
+            colorLight.position.x = 2.2 * Math.sin(time * 0.7);
+            colorLight.position.z = 2.8 * Math.cos(time * 0.5);
+            
+            // 让漂浮光点缓慢移动并改变大小 (呼吸感)
+            glowSprites.forEach((sprite, idx) => {
+                // 让每个光点绕Y轴做微小圆周运动
+                const speed = 0.005 + idx * 0.001;
+                const angleOff = idx;
+                const radOrig = Math.sqrt(sprite.position.x ** 2 + sprite.position.y ** 2 + sprite.position.z ** 2);
+                // 简单正弦运动改变位置
+                sprite.position.x += Math.sin(time * speed + angleOff) * 0.0008;
+                sprite.position.y += Math.cos(time * speed * 1.3 + angleOff) * 0.0008;
+                sprite.position.z += Math.sin(time * speed * 0.9 + angleOff) * 0.0008;
+                // 动态缩放闪烁
+                const scaleVal = 0.025 + Math.sin(time * 3 + idx) * 0.01;
+                sprite.scale.set(scaleVal, scaleVal, 1);
+            });
+            
+            // 星空旋转，制造宏大感
+            stars.rotation.y += 0.0002;
+            stars.rotation.x += 0.0001;
+            starField.rotation.y -= 0.00015;
+            
+            // 更新轨道控制
+            controls.update(); // 如果 autoRotate 关闭，但用户交互时依然需要更新
+            
+            // 后期渲染
+            effectComposer.render();
+        }
+        
+        // 启动动画
+        animate();
+        
+        // --- 窗口适配 ---
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            effectComposer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // 简单控制台输出提示
+        console.log('3D地球已启动 | 酷炫效果已开启 | 纹理加载中...');
+        
+        // 优雅地处理纹理加载失败？不影响主视觉，控制台不报重大错误即可，贴图CDN稳定。
+        // 增加地球加载完成后的光晕增强小动画: 略微延迟后调整Bloom强度模拟星芒效果 (不需要额外)
+        
+        // 添加一个额外的光线效果: 创建简单的射线光晕环? (可选环状粒子)
+        // 已经足够酷炫，不继续增加性能开销
+        
+        // 为了让地球更加生动，可以在地球周围增加淡淡的粒子轨迹(已经做了环)
+        
+        // 补充一点: 如果贴图加载慢，显示默认颜色，但无伤大雅，大多数情况很快
+        // 确保云层纹理透明混合效果完美
+        
+        // 最终优化: 为了移动端性能，可以降低粒子数量，但现代设备足够运行
+    </script>
+</body>
+</html>
