@@ -1,408 +1,547 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>接收端 · 文本接收</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-            padding: 16px;
-        }
-        .receiver-card {
-            background: rgba(15, 20, 30, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 40px;
-            padding: 32px 24px;
-            width: 100%;
-            max-width: 540px;
-            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.7);
-            color: #f1f5f9;
-        }
-        h2 {
-            font-weight: 400;
-            font-size: 1.9rem;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-        .subhead {
-            font-size: 0.9rem;
-            color: #a7b6d0;
-            margin-bottom: 28px;
-            border-left: 3px solid #38bdf8;
-            padding-left: 12px;
-            font-weight: 300;
-        }
-        .room-section {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 32px;
-            padding: 20px 22px;
-            margin-bottom: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .room-label {
-            display: block;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #94a3b8;
-            margin-bottom: 8px;
-        }
-        .room-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            border-bottom: 2px solid #475569;
-            color: white;
-            font-size: 1.6rem;
-            padding: 10px 4px;
-            font-weight: 400;
-            letter-spacing: 2px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .room-input:focus {
-            border-bottom-color: #38bdf8;
-        }
-        .room-input::placeholder {
-            color: #526078;
-            font-weight: 300;
-        }
-        .received-panel {
-            background: #0b111e;
-            border-radius: 28px;
-            padding: 24px;
-            margin-bottom: 28px;
-            min-height: 210px;
-            border: 1px solid #2b3a52;
-            box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.6);
-        }
-        .received-label {
-            font-size: 0.9rem;
-            color: #8fa3c0;
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            letter-spacing: 0.5px;
-        }
-        .received-message {
-            font-size: 1.25rem;
-            line-height: 1.6;
-            color: #e6edf7;
-            word-break: break-word;
-            white-space: pre-wrap;
-            min-height: 100px;
-            background: rgba(255, 255, 255, 0.02);
-            padding: 16px;
-            border-radius: 20px;
-            border: 1px dashed #3a4b68;
-        }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .btn {
-            flex: 1;
-            min-width: 130px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 14px 18px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            letter-spacing: 1px;
-            color: #e2e8f0;
-            cursor: pointer;
-            transition: all 0.25s;
-            backdrop-filter: blur(5px);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn-join {
-            background: #0d9488;
-            border-color: #0d9488;
-            box-shadow: 0 8px 20px rgba(13, 148, 136, 0.4);
-            color: white;
-        }
-        .btn-join:hover {
-            background: #0f766e;
-            transform: translateY(-2px);
-        }
-        .btn-clear {
-            background: #1e293b;
-            border-color: #3b4a63;
-        }
-        .btn-clear:hover {
-            background: #334155;
-        }
-        .log {
-            margin-top: 24px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            padding: 16px;
-            font-size: 0.85rem;
-            color: #b0c0da;
-            min-height: 52px;
-            display: flex;
-            align-items: center;
-            word-break: break-word;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            background: #facc15;
-            border-radius: 50%;
-            margin-right: 10px;
-            box-shadow: 0 0 12px #facc15;
-        }
-        .footer-note {
-            margin-top: 18px;
-            font-size: 0.75rem;
-            color: #5f7090;
-            text-align: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SF6 气室电弧泄压压力计算</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f0f2f5; color: #1a1a2e; line-height: 1.6;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+    color: #fff; padding: 18px 32px; box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header p { font-size: 12px; opacity: .8; margin-top: 3px; }
+  .container {
+    display: flex; gap: 18px; padding: 18px;
+    max-width: 1400px; margin: 0 auto;
+  }
+  .panel {
+    background: #fff; border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden;
+  }
+  .sidebar { width: 340px; flex-shrink: 0; }
+  .main { flex: 1; min-width: 0; }
+  .panel-title {
+    background: #f7fafc; padding: 11px 18px; font-size: 13px;
+    font-weight: 600; color: #2d3748; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title .dot { width: 7px; height: 7px; border-radius: 50%; background: #3182ce; }
+  .form-group { padding: 11px 18px; border-bottom: 1px solid #edf2f7; }
+  .form-group:last-child { border-bottom: none; }
+  .form-group label {
+    display: block; font-size: 11px; color: #718096;
+    margin-bottom: 5px; font-weight: 500;
+  }
+  .form-group label .req { color: #e53e3e; }
+  .form-group input {
+    width: 100%; padding: 7px 10px; border: 1px solid #cbd5e0;
+    border-radius: 5px; font-size: 13px; transition: border-color .2s, box-shadow .2s;
+  }
+  .form-group input:focus {
+    outline: none; border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(49,130,206,.15);
+  }
+  .form-row { display: flex; gap: 8px; }
+  .form-row .form-group { flex: 1; padding: 11px 0; border-bottom: none; }
+  .section-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .5px;
+    color: #a0aec0; padding: 8px 18px 3px; font-weight: 600;
+  }
+  .advanced-toggle {
+    padding: 10px 18px; cursor: pointer; font-size: 12px;
+    color: #4a5568; display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid #edf2f7; user-select: none;
+  }
+  .advanced-toggle:hover { background: #f7fafc; }
+  .advanced-toggle .arrow { transition: transform .2s; font-size: 10px; }
+  .advanced-toggle.open .arrow { transform: rotate(90deg); }
+  .advanced-body { display: none; }
+  .advanced-body.open { display: block; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 5px; padding: 9px 16px; border: none; border-radius: 5px;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #3182ce, #2c5282); color: #fff; width: 100%;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(49,130,206,.3); }
+  .btn-success { background: linear-gradient(135deg, #38a169, #2f855a); color: #fff; }
+  .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(56,161,105,.3); }
+  .btn-success:disabled { background: #cbd5e0; cursor: not-allowed; transform: none; box-shadow: none; }
+  .action-bar { padding: 14px 18px; display: flex; gap: 8px; }
+
+  .chart-wrap { padding: 16px; height: 380px; position: relative; }
+
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px; padding: 14px 18px;
+  }
+  .stat-card {
+    background: #f7fafc; border-radius: 7px; padding: 10px 14px;
+    border-left: 3px solid #3182ce;
+  }
+  .stat-card.warn { border-left-color: #e53e3e; }
+  .stat-card.ok { border-left-color: #38a169; }
+  .stat-label { font-size: 10px; color: #718096; text-transform: uppercase; letter-spacing: .3px; }
+  .stat-value { font-size: 18px; font-weight: 700; color: #2d3748; margin-top: 2px; }
+  .stat-unit { font-size: 11px; color: #a0aec0; font-weight: 400; }
+
+  .table-wrap { padding: 0 18px 16px; max-height: 360px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: #edf2f7; padding: 8px 12px; text-align: right;
+    font-weight: 600; color: #4a5568; position: sticky; top: 0; z-index: 1;
+    border: 1px solid #e2e8f0;
+  }
+  thead th:first-child { text-align: center; }
+  tbody td {
+    padding: 6px 12px; text-align: right; border-bottom: 1px solid #edf2f7;
+    font-family: "SF Mono","Consolas",monospace;
+  }
+  tbody td:first-child { text-align: center; color: #718096; }
+  tbody tr:hover { background: #f7fafc; }
+  tbody tr.peak-row { background: #fff3cd !important; }
+  tbody tr.vent-row { background: #fed7d7 !important; }
+
+  .model-notes { padding: 14px 18px; font-size: 11px; color: #718096; line-height: 1.8; }
+  .model-notes h4 { font-size: 12px; color: #4a5568; margin-bottom: 6px; margin-top: 10px; }
+  .model-notes h4:first-child { margin-top: 0; }
+  .model-notes ul { padding-left: 16px; }
+  .model-notes li { margin-bottom: 3px; }
+  .model-notes code { background: #edf2f7; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+  @media (max-width: 900px) {
+    .container { flex-direction: column; }
+    .sidebar { width: 100%; }
+  }
+</style>
 </head>
 <body>
-    <div class="receiver-card">
-        <h2>
-            <span>📥</span> 接收端
-        </h2>
-        <div class="subhead">加入同一房间 · 在线接收文本</div>
 
-        <div class="room-section">
-            <label class="room-label" for="receiverRoomInput">🔑 输入发送端的房间号</label>
-            <input type="text" id="receiverRoomInput" class="room-input" placeholder="例如：demo-salon" value="demo-salon" maxlength="60" autocomplete="off">
-        </div>
+<div class="header">
+  <h1>SF6 气室电弧泄压压力计算</h1>
+  <p>能量守恒 + 理想气体状态方程 + 临界孔口泄流 | RK4 数值积分 | 0~300ms 气室绝对气压输出</p>
+</div>
 
-        <div class="received-panel">
-            <div class="received-label">
-                <span>📄</span> 收到的文本消息
-            </div>
-            <div id="receivedMessage" class="received-message">等待发送端发送内容...</div>
-        </div>
+<div class="container">
+  <!-- 左侧参数面板 -->
+  <div class="sidebar">
+    <div class="panel">
+      <div class="panel-title"><span class="dot"></span>输入参数</div>
 
-        <div class="btn-group">
-            <button id="joinRoomBtn" class="btn btn-join">
-                <span>🔌</span> 加入/重连
-            </button>
-            <button id="clearMsgBtn" class="btn btn-clear">
-                <span>🧾</span> 清空消息
-            </button>
-        </div>
+      <div class="section-label">电弧参数</div>
+      <div class="form-group">
+        <label>电弧电流 I <span class="req">*</span> (A)</label>
+        <input type="number" id="arcCurrent" value="63000" step="100">
+      </div>
+      <div class="form-group">
+        <label>电弧电压 U <span class="req">*</span> (V)</label>
+        <input type="number" id="arcVoltage" value="2600" step="100">
+      </div>
 
-        <div id="statusLog" class="log">
-            <span class="status-dot"></span>
-            <span id="logText">请点击“加入”或修改房间后加入</span>
+      <div class="section-label">气室参数</div>
+      <div class="form-group">
+        <label>气室容积 V <span class="req">*</span> (m³)</label>
+        <input type="number" id="volume" value="0.5" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>气室初始绝对气压 P₀ <span class="req">*</span> (MPa)</label>
+        <input type="number" id="initPressure" value="0.55" step="0.01">
+      </div>
+
+      <div class="section-label">泄压装置</div>
+      <div class="form-row" style="padding:0 18px;">
+        <div class="form-group">
+          <label>泄压口直径 d <span class="req">*</span> (mm)</label>
+          <input type="number" id="ventDiameter" value="130" step="1">
         </div>
-        <div class="footer-note">
-            点对点连接 · 不经过服务器 (仅使用本地信令)
+        <div class="form-group">
+          <label>泄压口数量 N <span class="req">*</span> (个)</label>
+          <input type="number" id="ventCount" value="1" step="1" min="1">
         </div>
+      </div>
+      <div class="form-group">
+        <label>泄压口动作气压 P_act <span class="req">*</span> (MPa，绝压)</label>
+        <input type="number" id="actPressure" value="1.4" step="0.05">
+      </div>
+
+      <!-- 高级参数 -->
+      <div class="advanced-toggle" id="advToggle" onclick="toggleAdvanced()">
+        <span class="arrow">▶</span> 高级参数（热力学 / 数值设置）
+      </div>
+      <div class="advanced-body" id="advBody">
+        <div class="section-label">SF6 热力学参数</div>
+        <div class="form-row" style="padding:0 18px;">
+          <div class="form-group">
+            <label>初始温度 (°C)</label>
+            <input type="number" id="initTemp" value="20" step="1">
+          </div>
+          <div class="form-group">
+            <label>比热比 γ</label>
+            <input type="number" id="gamma" value="1.09" step="0.001">
+          </div>
+        </div>
+        <div class="form-row" style="padding:0 18px;">
+          <div class="form-group">
+            <label>摩尔质量 (g/mol)</label>
+            <input type="number" id="molarMass" value="146.06" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>流量系数 Cd</label>
+            <input type="number" id="dischargeCoeff" value="0.7" step="0.05" min="0.1" max="1">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>环境背压 (MPa，绝压)</label>
+          <input type="number" id="backPressure" value="0.1013" step="0.001">
+        </div>
+        <div class="section-label">计算设置</div>
+        <div class="form-row" style="padding:0 18px;">
+          <div class="form-group">
+            <label>总时长 (ms)</label>
+            <input type="number" id="totalTime" value="300" step="10">
+          </div>
+          <div class="form-group">
+            <label>输出间隔 (ms)</label>
+            <input type="number" id="outputStep" value="10" step="5">
+          </div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="runCalculation()">开始计算</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧结果区 -->
+  <div class="main">
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-title"><span class="dot"></span>气室绝对气压 - 时间曲线</div>
+      <div class="chart-wrap"><canvas id="pressureChart"></canvas></div>
     </div>
 
-    <script>
-        (function() {
-            const roomInput = document.getElementById('receiverRoomInput');
-            const receivedMessageDiv = document.getElementById('receivedMessage');
-            const joinBtn = document.getElementById('joinRoomBtn');
-            const clearMsgBtn = document.getElementById('clearMsgBtn');
-            const logText = document.getElementById('logText');
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-title"><span class="dot"></span>计算结果摘要</div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-label">电弧功率</div>
+          <div class="stat-value" id="statPower">-- <span class="stat-unit">MW</span></div>
+        </div>
+        <div class="stat-card warn">
+          <div class="stat-label">泄压口开启时刻</div>
+          <div class="stat-value" id="statVentOpen">-- <span class="stat-unit">ms</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">300ms末绝对气压</div>
+          <div class="stat-value" id="statEndP">-- <span class="stat-unit">MPa</span></div>
+        </div>
+        <div class="stat-card warn">
+          <div class="stat-label">峰值绝对气压</div>
+          <div class="stat-value" id="statMaxP">-- <span class="stat-unit">MPa</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">峰值出现时刻</div>
+          <div class="stat-value" id="statMaxT">-- <span class="stat-unit">ms</span></div>
+        </div>
+        <div class="stat-card ok">
+          <div class="stat-label">300ms末气体温度</div>
+          <div class="stat-value" id="statEndT">-- <span class="stat-unit">K</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">300ms末气体质量</div>
+          <div class="stat-value" id="statEndM">-- <span class="stat-unit">kg</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">累计泄放质量</div>
+          <div class="stat-value" id="statVentM">-- <span class="stat-unit">kg</span></div>
+        </div>
+      </div>
+      <div class="action-bar" style="padding-top:0;">
+        <button class="btn btn-success" id="exportBtn" onclick="exportCSV()" disabled>导出 CSV</button>
+      </div>
+    </div>
 
-            let localConnection = null;
-            let dataChannel = null;
-            let signalingChannel = null;
-            let currentRoom = roomInput.value.trim() || 'demo-salon';
-            const SIGNAL_PREFIX = 'webrtc-text-room-';
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-title"><span class="dot"></span>详细数据表（0~300ms，每10ms）</div>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>时间 (ms)</th>
+              <th>气室绝对气压 (MPa)</th>
+              <th>气体温度 (K)</th>
+              <th>气体质量 (kg)</th>
+              <th>泄压状态</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody">
+            <tr><td colspan="5" style="text-align:center;color:#a0aec0;padding:24px;">请点击"开始计算"按钮</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-            function updateLog(msg) {
-                logText.innerText = msg;
-            }
+    <div class="panel">
+      <div class="panel-title"><span class="dot"></span>模型说明与假设</div>
+      <div class="model-notes">
+        <h4>物理模型</h4>
+        <ul>
+          <li><b>能量守恒：</b><code>dU/dt = P_arc − h·dm_out/dt</code>，气室内能增加率 = 电弧功率输入 − 泄压流出气体带走的焓。</li>
+          <li><b>状态方程：</b><code>PV = m·R_s·T</code>，SF6 按理想气体处理；内能 <code>U = PV/(γ−1)</code>。</li>
+          <li><b>温度方程：</b><code>dT/dt = (P_arc − R_s·T·dm_out/dt) / (Cv·m)</code>。</li>
+          <li><b>临界流（壅塞流）：</b>气室压力远高于背压，全程满足临界条件。<code>dm/dt = Cd·A_total·P/√T · K_flow</code>，其中总流通面积 <code>A_total = N·π(d/2)²</code>，<code>K_flow = √(γ/R_s)·(2/(γ+1))^((γ+1)/(2(γ−1)))</code>。</li>
+          <li><b>泄压装置：</b>按防爆膜模型——气室气压达到动作绝压后永久破裂开启。</li>
+        </ul>
+        <h4>数值方法</h4>
+        <ul>
+          <li>四阶龙格-库塔法 (RK4) 积分，内部步长 1 ms，状态变量为气体质量 m(kg) 与温度 T(K)，气压由状态方程实时计算。</li>
+        </ul>
+        <h4>简化假设与局限性</h4>
+        <ul>
+          <li>假设电弧功率恒定（持续燃弧），P_arc = U·I。</li>
+          <li>SF6 热力学参数取常温常数，未考虑高温下振动自由度激发、分解吸热与真实气体效应；温度 >10000K 时绝对值仅供趋势参考。</li>
+          <li>忽略器壁传热、辐射热损失、电弧烧蚀及金属蒸气影响。</li>
+          <li>结果为工程估算值，实际气压受安装方式、气流分布、装置响应时间、管道阻力等因素影响。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 
-            function closeAll() {
-                if (dataChannel) {
-                    dataChannel.close();
-                    dataChannel = null;
-                }
-                if (localConnection) {
-                    localConnection.close();
-                    localConnection = null;
-                }
-                if (signalingChannel) {
-                    signalingChannel.close();
-                    signalingChannel = null;
-                }
-            }
+<script>
+let chart = null;
+let result = null;
 
-            function joinRoom() {
-                const room = roomInput.value.trim();
-                if (!room) {
-                    updateLog('⚠️ 请输入房间号');
-                    return;
-                }
+function toggleAdvanced() {
+  const toggle = document.getElementById('advToggle');
+  const body = document.getElementById('advBody');
+  toggle.classList.toggle('open');
+  body.classList.toggle('open');
+}
 
-                // 关闭旧连接
-                closeAll();
-                currentRoom = room;
-                updateLog('🔄 正在加入房间 [' + room + '] ...');
+function getParams() {
+  const I = parseFloat(document.getElementById('arcCurrent').value);
+  const U = parseFloat(document.getElementById('arcVoltage').value);
+  const V = parseFloat(document.getElementById('volume').value);
+  const P0 = parseFloat(document.getElementById('initPressure').value) * 1e6;
+  const T0 = parseFloat(document.getElementById('initTemp').value) + 273.15;
+  const d = parseFloat(document.getElementById('ventDiameter').value) / 1000;
+  const N = parseInt(document.getElementById('ventCount').value);
+  const Pact = parseFloat(document.getElementById('actPressure').value) * 1e6;
+  const Cd = parseFloat(document.getElementById('dischargeCoeff').value);
+  const gamma = parseFloat(document.getElementById('gamma').value);
+  const M = parseFloat(document.getElementById('molarMass').value) / 1000;
+  const Pback = parseFloat(document.getElementById('backPressure').value) * 1e6;
+  const totalTime = parseFloat(document.getElementById('totalTime').value) / 1000;
+  const outStep = parseFloat(document.getElementById('outputStep').value) / 1000;
 
-                // 创建信令 BroadcastChannel
-                signalingChannel = new BroadcastChannel(SIGNAL_PREFIX + room);
+  const R_spec = 8.314 / M;
+  const Cv = R_spec / (gamma - 1);
+  const A_single = Math.PI * (d/2)**2;
+  const A_total = A_single * N;
+  const K_flow = Math.sqrt(gamma/R_spec) * Math.pow(2/(gamma+1), (gamma+1)/(2*(gamma-1)));
+  const m0 = P0 * V / (R_spec * T0);
+  const P_arc = U * I;
 
-                // 创建 RTCPeerConnection (接收端)
-                const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-                localConnection = new RTCPeerConnection(configuration);
+  return {
+    I, U, V, P0, T0, d, N, Pact, Cd, gamma, M, R_spec, Cv,
+    A_single, A_total, K_flow, Pback, m0, P_arc,
+    totalTime, outStep
+  };
+}
 
-                // 接收端处理数据通道 (由发送端创建)
-                localConnection.ondatachannel = (event) => {
-                    dataChannel = event.channel;
-                    dataChannel.onopen = () => {
-                        updateLog('🔗 数据通道已打开，可以接收消息');
-                    };
-                    dataChannel.onclose = () => {
-                        updateLog('⛔ 数据通道关闭');
-                    };
-                    dataChannel.onerror = (err) => {
-                        updateLog('⚠️ 数据通道错误');
-                    };
-                    dataChannel.onmessage = (event) => {
-                        const msg = event.data;
-                        if (typeof msg === 'string') {
-                            receivedMessageDiv.innerText = msg;
-                            updateLog('📩 收到新消息 (' + msg.length + ' 字符)');
-                        }
-                    };
-                };
+function simulate(p) {
+  const { V, P0, T0, Pact, Cd, gamma, R_spec, Cv, A_total, K_flow, Pback, m0, P_arc, totalTime, outStep } = p;
+  const dt = 0.001;
+  const steps = Math.round(totalTime / dt);
+  const outInterval = Math.max(1, Math.round(outStep / dt));
 
-                // ICE 候选
-                localConnection.onicecandidate = (event) => {
-                    if (event.candidate && signalingChannel) {
-                        signalingChannel.postMessage({
-                            type: 'ice-candidate',
-                            candidate: event.candidate,
-                            from: 'receiver'
-                        });
-                    }
-                };
+  let m = m0, T = T0;
+  let ventOpen = false, ventOpenTime = -1;
+  const times=[0], pressures=[P0/1e6], temps=[T0], masses=[m0], ventStates=['未开启'];
 
-                // 监听连接状态
-                localConnection.onconnectionstatechange = () => {
-                    if (localConnection) {
-                        const state = localConnection.connectionState;
-                        if (state === 'connected') {
-                            updateLog('🟢 已连接发送端');
-                        } else if (state === 'disconnected' || state === 'failed' || state === 'closed') {
-                            updateLog('🔴 连接断开: ' + state);
-                        }
-                    }
-                };
+  function derivs(state) {
+    const mm=state[0], TT=state[1];
+    const P = mm * R_spec * TT / V;
+    if (P > Pact && !ventOpen) ventOpen = true;
+    let dm_out = 0;
+    if (ventOpen && P > Pback) {
+      dm_out = Cd * A_total * P / Math.sqrt(TT) * K_flow;
+    }
+    return [ -dm_out, (P_arc - R_spec*TT*dm_out)/(Cv*mm) ];
+  }
 
-                // 处理信令消息
-                signalingChannel.onmessage = (event) => {
-                    const msg = event.data;
-                    if (!msg || !msg.from) return;
-                    if (msg.from !== 'sender') return;  // 只处理来自发送端的信令
+  function rk4(state, h) {
+    const k1=derivs(state);
+    const s2=[state[0]+h/2*k1[0], state[1]+h/2*k1[1]]; const k2=derivs(s2);
+    const s3=[state[0]+h/2*k2[0], state[1]+h/2*k2[1]]; const k3=derivs(s3);
+    const s4=[state[0]+h*k3[0], state[1]+h*k3[1]]; const k4=derivs(s4);
+    return [
+      state[0]+h/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]),
+      state[1]+h/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1])
+    ];
+  }
 
-                    switch (msg.type) {
-                        case 'sender-ready':
-                            // 发送端已就绪，通知发送端接收端加入
-                            if (signalingChannel) {
-                                signalingChannel.postMessage({
-                                    type: 'receiver-joined',
-                                    from: 'receiver'
-                                });
-                            }
-                            updateLog('👋 已向发送端发送加入请求');
-                            break;
-                        case 'offer':
-                            if (localConnection && msg.offer) {
-                                localConnection.setRemoteDescription(new RTCSessionDescription(msg.offer))
-                                    .then(() => {
-                                        return localConnection.createAnswer();
-                                    })
-                                    .then(answer => {
-                                        return localConnection.setLocalDescription(answer);
-                                    })
-                                    .then(() => {
-                                        if (signalingChannel) {
-                                            signalingChannel.postMessage({
-                                                type: 'answer',
-                                                answer: localConnection.localDescription,
-                                                from: 'receiver'
-                                            });
-                                        }
-                                    })
-                                    .catch(e => updateLog('❌ 处理 offer 失败: ' + e.message));
-                            }
-                            break;
-                        case 'ice-candidate':
-                            if (localConnection && msg.candidate) {
-                                localConnection.addIceCandidate(new RTCIceCandidate(msg.candidate))
-                                    .catch(e => console.warn('添加 ICE 失败', e));
-                            }
-                            break;
-                        default:
-                            console.log('未知信令', msg.type);
-                    }
-                };
+  let state=[m,T];
+  for (let i=1; i<=steps; i++) {
+    state = rk4(state, dt);
+    const t=i*dt;
+    const P_now=state[0]*R_spec*state[1]/V;
+    if (ventOpen && ventOpenTime<0) ventOpenTime=t;
+    if (i % outInterval===0) {
+      times.push(t*1000);
+      pressures.push(P_now/1e6);
+      temps.push(state[1]);
+      masses.push(state[0]);
+      ventStates.push(ventOpen ? '已开启' : '未开启');
+    }
+  }
+  return { times, pressures, temps, masses, ventStates, ventOpenTime };
+}
 
-                // 额外发送一个加入请求，同时应对发送端先创建但未广播的情况
-                if (signalingChannel) {
-                    signalingChannel.postMessage({
-                        type: 'receiver-joined',
-                        from: 'receiver'
-                    });
-                }
-                updateLog('📡 已加入房间 [' + room + ']，等待发送端...');
-            }
+function runCalculation() {
+  const p = getParams();
+  if (isNaN(p.I)||p.I<=0) { alert('请输入有效的电弧电流。'); return; }
+  if (isNaN(p.U)||p.U<=0) { alert('请输入有效的电弧电压。'); return; }
+  if (p.V<=0||p.P0<=0||p.T0<=0||p.A_single<=0) { alert('容积、初始气压、初始温度、泄压口直径必须为正值。'); return; }
+  if (isNaN(p.N)||p.N<1) { alert('泄压口数量必须为≥1的整数。'); return; }
+  if (p.outStep > p.totalTime) { alert('输出间隔不能大于总时长。'); return; }
 
-            // 事件监听
-            joinBtn.addEventListener('click', joinRoom);
-            clearMsgBtn.addEventListener('click', () => {
-                receivedMessageDiv.innerText = '等待发送端发送内容...';
-                updateLog('🗑️ 已清空显示');
-            });
+  result = simulate(p);
+  result.params = p;
+  renderChart(p);
+  renderStats(p);
+  renderTable();
+  document.getElementById('exportBtn').disabled = false;
+}
 
-            roomInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    joinRoom();
-                }
-            });
+function renderChart(p) {
+  const ctx = document.getElementById('pressureChart').getContext('2d');
+  if (chart) chart.destroy();
 
-            // 初始自动尝试加入默认房间
-            window.addEventListener('load', () => {
-                // 延迟一点点确保所有元素就绪
-                setTimeout(() => {
-                    joinRoom();
-                }, 300);
-            });
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: result.times.map(t=>t.toFixed(0)),
+      datasets: [
+        {
+          label: '气室绝对气压',
+          data: result.pressures,
+          borderColor: '#3182ce', backgroundColor: 'rgba(49,130,206,.08)',
+          borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5,
+          fill: true, tension: 0.2
+        },
+        {
+          label: '泄压动作气压 '+(p.Pact/1e6).toFixed(2)+' MPa',
+          data: result.times.map(()=>p.Pact/1e6),
+          borderColor: '#e53e3e', borderWidth: 1.5, borderDash: [6,4],
+          pointRadius: 0, fill: false
+        },
+        {
+          label: '初始气压 '+(p.P0/1e6).toFixed(2)+' MPa',
+          data: result.times.map(()=>p.P0/1e6),
+          borderColor: '#a0aec0', borderWidth: 1, borderDash: [4,4],
+          pointRadius: 0, fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, padding: 14, font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            title: items => '时间: '+items[0].label+' ms',
+            label: item => item.dataset.label+': '+item.parsed.y.toFixed(4)+' MPa'
+          }
+        }
+      },
+      scales: {
+        x: { title: { display:true, text:'时间 (ms)', font:{size:12,weight:'600'} }, grid:{color:'#edf2f7'}, ticks:{maxTicksLimit:16} },
+        y: { title: { display:true, text:'气室绝对气压 (MPa)', font:{size:12,weight:'600'} }, grid:{color:'#edf2f7'} }
+      }
+    }
+  });
+}
 
-            window.addEventListener('beforeunload', () => {
-                closeAll();
-            });
-        })();
-    </script>
+function renderStats(p) {
+  const maxP = Math.max(...result.pressures);
+  const maxIdx = result.pressures.indexOf(maxP);
+  const last = result.pressures.length - 1;
+
+  document.getElementById('statPower').innerHTML = (p.P_arc/1e6).toFixed(2)+' <span class="stat-unit">MW</span>';
+  document.getElementById('statVentOpen').innerHTML = result.ventOpenTime>0
+    ? (result.ventOpenTime*1000).toFixed(1)+' <span class="stat-unit">ms</span>'
+    : '未开启 <span class="stat-unit">—</span>';
+  document.getElementById('statEndP').innerHTML = result.pressures[last].toFixed(4)+' <span class="stat-unit">MPa</span>';
+  document.getElementById('statMaxP').innerHTML = maxP.toFixed(4)+' <span class="stat-unit">MPa</span>';
+  document.getElementById('statMaxT').innerHTML = result.times[maxIdx].toFixed(0)+' <span class="stat-unit">ms</span>';
+  document.getElementById('statEndT').innerHTML = result.temps[last].toFixed(1)+' <span class="stat-unit">K</span>';
+  document.getElementById('statEndM').innerHTML = result.masses[last].toFixed(3)+' <span class="stat-unit">kg</span>';
+  document.getElementById('statVentM').innerHTML = (p.m0-result.masses[last]).toFixed(3)+' <span class="stat-unit">kg</span>';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('dataBody');
+  const maxP = Math.max(...result.pressures);
+  const maxIdx = result.pressures.indexOf(maxP);
+  let html = '';
+  for (let i=0; i<result.times.length; i++) {
+    let cls = '';
+    if (i === maxIdx) cls = 'peak-row';
+    else if (result.ventStates[i]==='已开启' && (i===0 || result.ventStates[i-1]==='未开启')) cls = 'vent-row';
+    html += '<tr class="'+cls+'">';
+    html += '<td>'+result.times[i].toFixed(0)+'</td>';
+    html += '<td>'+result.pressures[i].toFixed(4)+'</td>';
+    html += '<td>'+result.temps[i].toFixed(1)+'</td>';
+    html += '<td>'+result.masses[i].toFixed(4)+'</td>';
+    html += '<td style="text-align:center;color:'+(result.ventStates[i]==='已开启'?'#e53e3e':'#718096')+'">'+result.ventStates[i]+'</td>';
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function exportCSV() {
+  if (!result) return;
+  const p = result.params;
+  let csv = '\ufeff';
+  csv += 'SF6气室电弧泄压压力计算结果\n';
+  csv += '电弧电流(A),'+p.I+',电弧电压(V),'+p.U+',电弧功率(MW),'+(p.P_arc/1e6).toFixed(2)+'\n';
+  csv += '气室容积(m3),'+p.V+',初始绝对气压(MPa),'+(p.P0/1e6).toFixed(4)+',初始温度(K),'+p.T0.toFixed(2)+'\n';
+  csv += '泄压口直径(mm),'+(p.d*1000)+',泄压口数量(个),'+p.N+',动作气压(MPa),'+(p.Pact/1e6).toFixed(4)+'\n';
+  csv += '流量系数Cd,'+p.Cd+',比热比γ,'+p.gamma+',摩尔质量(g/mol),'+(p.M*1000).toFixed(2)+'\n';
+  csv += '\n';
+  csv += '时间(ms),气室绝对气压(MPa),气体温度(K),气体质量(kg),泄压状态\n';
+  for (let i=0; i<result.times.length; i++) {
+    csv += result.times[i].toFixed(0)+','
+         + result.pressures[i].toFixed(4)+','
+         + result.temps[i].toFixed(1)+','
+         + result.masses[i].toFixed(4)+','
+         + result.ventStates[i]+'\n';
+  }
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'SF6气室电弧泄压压力计算结果.csv';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+window.addEventListener('load', () => { runCalculation(); });
+</script>
+
 </body>
 </html>
