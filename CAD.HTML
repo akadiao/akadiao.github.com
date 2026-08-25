@@ -1,554 +1,407 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>百度搜索 + 知乎浮动窗</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>接收端 · 文本接收</title>
     <style>
-        /* 全局重置，确保字体无缩放 */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
-
         body {
-            font-family: Arial, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #222;
-            background: #f0f2f5;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            position: relative;
-            /* 禁用双击缩放等可能影响字体的行为 */
-            touch-action: manipulation;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-        }
-
-        /* 百度搜索主区域铺满全屏 */
-        .baidu-fullpage {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #ffffff;
+            background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            z-index: 1;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            padding: 16px;
         }
-
-        .baidu-header {
-            padding: 12px 20px;
-            background: #ffffff;
-            border-bottom: 1px solid #e5e5e5;
+        .receiver-card {
+            background: rgba(15, 20, 30, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 40px;
+            padding: 32px 24px;
+            width: 100%;
+            max-width: 540px;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.7);
+            color: #f1f5f9;
+        }
+        h2 {
+            font-weight: 400;
+            font-size: 1.9rem;
+            letter-spacing: 1px;
             display: flex;
             align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+            gap: 10px;
+            margin-bottom: 6px;
         }
-
-        .baidu-logo {
-            font-weight: bold;
-            font-size: 26px;
-            color: #315efb;
-            letter-spacing: -1px;
-            user-select: none;
-            white-space: nowrap;
+        .subhead {
+            font-size: 0.9rem;
+            color: #a7b6d0;
+            margin-bottom: 28px;
+            border-left: 3px solid #38bdf8;
+            padding-left: 12px;
+            font-weight: 300;
         }
-        .baidu-logo span {
-            color: #ff4d4f;
+        .room-section {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 32px;
+            padding: 20px 22px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-
-        .search-form {
-            flex: 1;
+        .room-label {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .room-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #475569;
+            color: white;
+            font-size: 1.6rem;
+            padding: 10px 4px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .room-input:focus {
+            border-bottom-color: #38bdf8;
+        }
+        .room-input::placeholder {
+            color: #526078;
+            font-weight: 300;
+        }
+        .received-panel {
+            background: #0b111e;
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 28px;
+            min-height: 210px;
+            border: 1px solid #2b3a52;
+            box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.6);
+        }
+        .received-label {
+            font-size: 0.9rem;
+            color: #8fa3c0;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
-            min-width: 220px;
+            letter-spacing: 0.5px;
         }
-        .search-input {
-            flex: 1;
-            padding: 10px 18px;
-            border: 2px solid #c9d4f0;
-            border-radius: 24px;
-            font-size: 16px;
-            outline: none;
-            transition: 0.2s;
-            background: #fafafa;
-            max-width: 500px;
+        .received-message {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: #e6edf7;
+            word-break: break-word;
+            white-space: pre-wrap;
+            min-height: 100px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 16px;
+            border-radius: 20px;
+            border: 1px dashed #3a4b68;
         }
-        .search-input:focus {
-            border-color: #315efb;
-            background: #ffffff;
-        }
-        .search-btn {
-            background: #315efb;
-            border: none;
-            color: white;
-            padding: 10px 24px;
-            border-radius: 24px;
-            font-size: 16px;
-            cursor: pointer;
-            white-space: nowrap;
-            font-weight: 500;
-            transition: 0.15s;
-        }
-        .search-btn:hover {
-            background: #1e43c2;
-        }
-
-        .baidu-frame-wrap {
-            flex: 1;
-            min-height: 0;
-            background: #ffffff;
-            position: relative;
-        }
-        .baidu-frame-wrap iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-            background: #fff;
-        }
-
-        /* 右侧浮动窗口 - 无边界显示，只显示知乎内容页 */
-        .zhihu-float-window {
-            position: fixed;
-            top: 80px;          /* 起始位置，不遮挡百度搜索框 */
-            right: 20px;
-            width: 480px;
-            height: 560px;
-            min-width: 280px;
-            min-height: 220px;
-            max-width: 70vw;
-            max-height: 80vh;
-            background: #ffffff;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            /* 无边界显示，去除边框 */
-            border: none;
-            overflow: hidden;
-            z-index: 1000;
+        .btn-group {
             display: flex;
-            flex-direction: column;
-            /* 保证内部iframe字体正常，无缩放 */
-            transform: translateZ(0);
-            will-change: width, height;
-            transition: box-shadow 0.2s;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
-
-        .zhihu-float-window:hover {
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15);
+        .btn {
+            flex: 1;
+            min-width: 130px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 14px 18px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.25s;
+            backdrop-filter: blur(5px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-
-        /* 窗口顶部：仅用于拖拽移动，但不显示任何标题文字 */
-        .window-drag-bar {
-            height: 24px;
-            background: transparent;
-            cursor: move;
-            flex-shrink: 0;
-            position: relative;
+        .btn-join {
+            background: #0d9488;
+            border-color: #0d9488;
+            box-shadow: 0 8px 20px rgba(13, 148, 136, 0.4);
+            color: white;
+        }
+        .btn-join:hover {
+            background: #0f766e;
+            transform: translateY(-2px);
+        }
+        .btn-clear {
+            background: #1e293b;
+            border-color: #3b4a63;
+        }
+        .btn-clear:hover {
+            background: #334155;
+        }
+        .log {
+            margin-top: 24px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 16px;
+            font-size: 0.85rem;
+            color: #b0c0da;
+            min-height: 52px;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            padding: 0 6px;
-            /* 完全透明，无文字 */
-            user-select: none;
-            -webkit-user-select: none;
+            word-break: break-word;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-
-        /* 拖拽手柄的视觉提示（小圆点，不显示文字） */
-        .drag-dots {
-            display: flex;
-            gap: 4px;
-            opacity: 0.5;
-            pointer-events: none;
-        }
-        .drag-dots span {
-            width: 5px;
-            height: 5px;
-            background: #999;
-            border-radius: 50%;
-            display: block;
-        }
-
-        /* 调节大小的手柄（右下角） */
-        .resize-corner {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 28px;
-            height: 28px;
-            cursor: nwse-resize;
-            z-index: 10;
-            background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.15) 50%);
-            border-bottom-right-radius: 12px;
-            pointer-events: auto;
-        }
-        .resize-corner:hover {
-            background: linear-gradient(135deg, transparent 45%, rgba(0,0,0,0.25) 45%);
-        }
-
-        /* 调节大小的手柄（左下角，可选） */
-        .resize-corner-left {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 24px;
-            height: 24px;
-            cursor: nesw-resize;
-            z-index: 10;
-            background: linear-gradient(45deg, transparent 50%, rgba(0,0,0,0.15) 50%);
-            border-bottom-left-radius: 12px;
-        }
-        .resize-corner-left:hover {
-            background: linear-gradient(45deg, transparent 45%, rgba(0,0,0,0.25) 45%);
-        }
-
-        /* 右侧边缘调节大小（左右拖拽改变宽度） */
-        .resize-edge-right {
-            position: absolute;
-            top: 10px;
-            right: -4px;
+        .status-dot {
+            display: inline-block;
             width: 10px;
-            height: calc(100% - 40px);
-            cursor: ew-resize;
-            z-index: 9;
-            background: transparent;
-        }
-        .resize-edge-right:hover {
-            background: rgba(49, 94, 251, 0.08);
-        }
-
-        /* 底部边缘调节大小（上下拖拽改变高度） */
-        .resize-edge-bottom {
-            position: absolute;
-            bottom: -4px;
-            left: 10px;
             height: 10px;
-            width: calc(100% - 40px);
-            cursor: ns-resize;
-            z-index: 9;
-            background: transparent;
+            background: #facc15;
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 0 12px #facc15;
         }
-        .resize-edge-bottom:hover {
-            background: rgba(49, 94, 251, 0.08);
-        }
-
-        /* 知乎iframe容器 */
-        .zhihu-frame-wrap {
-            flex: 1;
-            min-height: 0;
-            background: #ffffff;
-            position: relative;
-            overflow: hidden;
-        }
-        .zhihu-frame-wrap iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-            background: #fff;
-            /* 确保字体渲染无缩放 */
-            transform: scale(1);
-            transform-origin: 0 0;
-        }
-
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            .zhihu-float-window {
-                width: 70vw;
-                height: 55vh;
-                top: 70px;
-                right: 10px;
-                min-width: 240px;
-                min-height: 180px;
-            }
-            .baidu-header {
-                padding: 8px 12px;
-            }
-            .baidu-logo {
-                font-size: 20px;
-            }
-            .search-btn {
-                padding: 8px 16px;
-                font-size: 14px;
-            }
+        .footer-note {
+            margin-top: 18px;
+            font-size: 0.75rem;
+            color: #5f7090;
+            text-align: center;
         }
     </style>
 </head>
 <body>
+    <div class="receiver-card">
+        <h2>
+            <span>📥</span> 接收端
+        </h2>
+        <div class="subhead">加入同一房间 · 在线接收文本</div>
 
-    <!-- 百度搜索区域铺满全屏 -->
-    <div class="baidu-fullpage">
-        <div class="baidu-header">
-            <div class="baidu-logo">百度<span>一下</span></div>
-            <form class="search-form" id="baiduSearchForm" target="baiduFrame" action="https://www.baidu.com/s" method="get">
-                <input type="text" name="wd" class="search-input" placeholder="输入关键词，搜索百度" autocomplete="off" value="人工智能">
-                <button type="submit" class="search-btn">百度搜索</button>
-            </form>
+        <div class="room-section">
+            <label class="room-label" for="receiverRoomInput">🔑 输入发送端的房间号</label>
+            <input type="text" id="receiverRoomInput" class="room-input" placeholder="例如：demo-salon" value="demo-salon" maxlength="60" autocomplete="off">
         </div>
-        <div class="baidu-frame-wrap">
-            <!-- 百度搜索iframe铺满剩余区域 -->
-            <iframe id="baiduFrame" name="baiduFrame" 
-                    src="https://www.baidu.com/s?wd=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD" 
-                    loading="lazy" 
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="百度搜索区域"></iframe>
-        </div>
-    </div>
 
-    <!-- 右侧浮动知乎窗口 - 无标题、无边界显示，只显示内容页 -->
-    <div class="zhihu-float-window" id="zhihuWindow">
-        <!-- 顶部拖拽条（透明，只有小圆点提示，无任何文字） -->
-        <div class="window-drag-bar" id="windowDragBar">
-            <div class="drag-dots">
-                <span></span><span></span><span></span>
+        <div class="received-panel">
+            <div class="received-label">
+                <span>📄</span> 收到的文本消息
             </div>
+            <div id="receivedMessage" class="received-message">等待发送端发送内容...</div>
         </div>
 
-        <!-- 知乎内容iframe -->
-        <div class="zhihu-frame-wrap">
-            <iframe id="zhihuFrame" 
-                    src="https://www.zhihu.com/explore" 
-                    loading="lazy" 
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="知乎内容窗口"></iframe>
+        <div class="btn-group">
+            <button id="joinRoomBtn" class="btn btn-join">
+                <span>🔌</span> 加入/重连
+            </button>
+            <button id="clearMsgBtn" class="btn btn-clear">
+                <span>🧾</span> 清空消息
+            </button>
         </div>
 
-        <!-- 调节大小的手柄：右下角、左下角、右边缘、底边缘 -->
-        <div class="resize-corner" id="resizeCorner"></div>
-        <div class="resize-corner-left" id="resizeCornerLeft"></div>
-        <div class="resize-edge-right" id="resizeEdgeRight"></div>
-        <div class="resize-edge-bottom" id="resizeEdgeBottom"></div>
+        <div id="statusLog" class="log">
+            <span class="status-dot"></span>
+            <span id="logText">请点击“加入”或修改房间后加入</span>
+        </div>
+        <div class="footer-note">
+            点对点连接 · 不经过服务器 (仅使用本地信令)
+        </div>
     </div>
 
     <script>
         (function() {
-            // ---------- 窗口拖拽移动 ----------
-            const zhihuWindow = document.getElementById('zhihuWindow');
-            const dragBar = document.getElementById('windowDragBar');
-            
-            let isDraggingWindow = false;
-            let dragStartX = 0, dragStartY = 0;
-            let windowStartLeft = 0, windowStartTop = 0;
-            
-            dragBar.addEventListener('mousedown', (e) => {
-                isDraggingWindow = true;
-                dragStartX = e.clientX;
-                dragStartY = e.clientY;
-                
-                const rect = zhihuWindow.getBoundingClientRect();
-                windowStartLeft = rect.left;
-                windowStartTop = rect.top;
-                
-                e.preventDefault();
-                document.body.style.cursor = 'move';
-                document.body.style.userSelect = 'none';
-                
-                // 禁用iframe指针事件以便拖拽流畅
-                document.querySelectorAll('iframe').forEach(iframe => {
-                    iframe.style.pointerEvents = 'none';
-                });
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isDraggingWindow) return;
-                
-                const deltaX = e.clientX - dragStartX;
-                const deltaY = e.clientY - dragStartY;
-                
-                let newLeft = windowStartLeft + deltaX;
-                let newTop = windowStartTop + deltaY;
-                
-                // 边界限制，防止窗口完全移出屏幕
-                const winWidth = zhihuWindow.offsetWidth;
-                const winHeight = zhihuWindow.offsetHeight;
-                const maxLeft = window.innerWidth - 40;
-                const maxTop = window.innerHeight - 40;
-                
-                newLeft = Math.max(5, Math.min(newLeft, maxLeft));
-                newTop = Math.max(40, Math.min(newTop, maxTop)); // 顶部留出搜索框位置
-                
-                zhihuWindow.style.left = newLeft + 'px';
-                zhihuWindow.style.top = newTop + 'px';
-                // 确保right和bottom不会影响定位
-                zhihuWindow.style.right = 'auto';
-                zhihuWindow.style.bottom = 'auto';
-                
-                e.preventDefault();
-            });
-            
-            document.addEventListener('mouseup', () => {
-                if (isDraggingWindow) {
-                    isDraggingWindow = false;
-                    document.body.style.cursor = '';
-                    document.body.style.userSelect = '';
-                    document.querySelectorAll('iframe').forEach(iframe => {
-                        iframe.style.pointerEvents = '';
-                    });
-                }
-            });
-            
-            // ---------- 窗口大小调节 ----------
-            const resizeCorner = document.getElementById('resizeCorner');
-            const resizeCornerLeft = document.getElementById('resizeCornerLeft');
-            const resizeEdgeRight = document.getElementById('resizeEdgeRight');
-            const resizeEdgeBottom = document.getElementById('resizeEdgeBottom');
-            
-            let isResizing = false;
-            let resizeMode = ''; // 'corner-right', 'corner-left', 'edge-right', 'edge-bottom'
-            let resizeStartX = 0, resizeStartY = 0;
-            let startWidth = 0, startHeight = 0;
-            let startLeft = 0, startTop = 0;
-            
-            // 通用开始调节函数
-            function startResize(e, mode) {
-                isResizing = true;
-                resizeMode = mode;
-                resizeStartX = e.clientX;
-                resizeStartY = e.clientY;
-                
-                const rect = zhihuWindow.getBoundingClientRect();
-                startWidth = rect.width;
-                startHeight = rect.height;
-                startLeft = rect.left;
-                startTop = rect.top;
-                
-                e.preventDefault();
-                e.stopPropagation();
-                document.body.style.cursor = mode.includes('right') ? 'ew-resize' : (mode.includes('bottom') ? 'ns-resize' : (mode === 'corner-left' ? 'nesw-resize' : 'nwse-resize'));
-                document.body.style.userSelect = 'none';
-                
-                document.querySelectorAll('iframe').forEach(iframe => {
-                    iframe.style.pointerEvents = 'none';
-                });
+            const roomInput = document.getElementById('receiverRoomInput');
+            const receivedMessageDiv = document.getElementById('receivedMessage');
+            const joinBtn = document.getElementById('joinRoomBtn');
+            const clearMsgBtn = document.getElementById('clearMsgBtn');
+            const logText = document.getElementById('logText');
+
+            let localConnection = null;
+            let dataChannel = null;
+            let signalingChannel = null;
+            let currentRoom = roomInput.value.trim() || 'demo-salon';
+            const SIGNAL_PREFIX = 'webrtc-text-room-';
+
+            function updateLog(msg) {
+                logText.innerText = msg;
             }
-            
-            // 结束调节
-            function endResize() {
-                if (isResizing) {
-                    isResizing = false;
-                    resizeMode = '';
-                    document.body.style.cursor = '';
-                    document.body.style.userSelect = '';
-                    document.querySelectorAll('iframe').forEach(iframe => {
-                        iframe.style.pointerEvents = '';
-                    });
+
+            function closeAll() {
+                if (dataChannel) {
+                    dataChannel.close();
+                    dataChannel = null;
+                }
+                if (localConnection) {
+                    localConnection.close();
+                    localConnection = null;
+                }
+                if (signalingChannel) {
+                    signalingChannel.close();
+                    signalingChannel = null;
                 }
             }
-            
-            // 监听调节手柄
-            resizeCorner.addEventListener('mousedown', (e) => startResize(e, 'corner-right'));
-            resizeCornerLeft.addEventListener('mousedown', (e) => startResize(e, 'corner-left'));
-            resizeEdgeRight.addEventListener('mousedown', (e) => startResize(e, 'edge-right'));
-            resizeEdgeBottom.addEventListener('mousedown', (e) => startResize(e, 'edge-bottom'));
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isResizing) return;
-                
-                const deltaX = e.clientX - resizeStartX;
-                const deltaY = e.clientY - resizeStartY;
-                
-                let newWidth = startWidth;
-                let newHeight = startHeight;
-                let newLeft = startLeft;
-                let newTop = startTop;
-                
-                const minW = 280;
-                const minH = 220;
-                const maxW = window.innerWidth * 0.8;
-                const maxH = window.innerHeight * 0.85;
-                
-                switch (resizeMode) {
-                    case 'corner-right': // 右下角：改变宽度和高度
-                        newWidth = Math.max(minW, Math.min(startWidth + deltaX, maxW));
-                        newHeight = Math.max(minH, Math.min(startHeight + deltaY, maxH));
-                        break;
-                    case 'corner-left': // 左下角：改变宽度和高度，同时调整左侧位置
-                        newWidth = Math.max(minW, Math.min(startWidth - deltaX, maxW));
-                        newHeight = Math.max(minH, Math.min(startHeight + deltaY, maxH));
-                        newLeft = startLeft + (startWidth - newWidth);
-                        // 确保不超出左边界
-                        if (newLeft < 5) {
-                            newLeft = 5;
-                            newWidth = startLeft + startWidth - 5;
+
+            function joinRoom() {
+                const room = roomInput.value.trim();
+                if (!room) {
+                    updateLog('⚠️ 请输入房间号');
+                    return;
+                }
+
+                // 关闭旧连接
+                closeAll();
+                currentRoom = room;
+                updateLog('🔄 正在加入房间 [' + room + '] ...');
+
+                // 创建信令 BroadcastChannel
+                signalingChannel = new BroadcastChannel(SIGNAL_PREFIX + room);
+
+                // 创建 RTCPeerConnection (接收端)
+                const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+                localConnection = new RTCPeerConnection(configuration);
+
+                // 接收端处理数据通道 (由发送端创建)
+                localConnection.ondatachannel = (event) => {
+                    dataChannel = event.channel;
+                    dataChannel.onopen = () => {
+                        updateLog('🔗 数据通道已打开，可以接收消息');
+                    };
+                    dataChannel.onclose = () => {
+                        updateLog('⛔ 数据通道关闭');
+                    };
+                    dataChannel.onerror = (err) => {
+                        updateLog('⚠️ 数据通道错误');
+                    };
+                    dataChannel.onmessage = (event) => {
+                        const msg = event.data;
+                        if (typeof msg === 'string') {
+                            receivedMessageDiv.innerText = msg;
+                            updateLog('📩 收到新消息 (' + msg.length + ' 字符)');
                         }
-                        break;
-                    case 'edge-right': // 右边缘：仅改变宽度
-                        newWidth = Math.max(minW, Math.min(startWidth + deltaX, maxW));
-                        break;
-                    case 'edge-bottom': // 底边缘：仅改变高度
-                        newHeight = Math.max(minH, Math.min(startHeight + deltaY, maxH));
-                        break;
-                }
-                
-                // 应用新尺寸
-                zhihuWindow.style.width = newWidth + 'px';
-                zhihuWindow.style.height = newHeight + 'px';
-                
-                if (resizeMode === 'corner-left') {
-                    zhihuWindow.style.left = newLeft + 'px';
-                    zhihuWindow.style.right = 'auto';
-                }
-                
-                e.preventDefault();
-            });
-            
-            document.addEventListener('mouseup', () => {
-                if (isResizing) {
-                    endResize();
-                }
-            });
-            
-            // 窗口失焦时确保结束拖拽/调节
-            window.addEventListener('blur', () => {
-                if (isDraggingWindow) {
-                    isDraggingWindow = false;
-                    document.body.style.cursor = '';
-                    document.body.style.userSelect = '';
-                    document.querySelectorAll('iframe').forEach(iframe => {
-                        iframe.style.pointerEvents = '';
+                    };
+                };
+
+                // ICE 候选
+                localConnection.onicecandidate = (event) => {
+                    if (event.candidate && signalingChannel) {
+                        signalingChannel.postMessage({
+                            type: 'ice-candidate',
+                            candidate: event.candidate,
+                            from: 'receiver'
+                        });
+                    }
+                };
+
+                // 监听连接状态
+                localConnection.onconnectionstatechange = () => {
+                    if (localConnection) {
+                        const state = localConnection.connectionState;
+                        if (state === 'connected') {
+                            updateLog('🟢 已连接发送端');
+                        } else if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+                            updateLog('🔴 连接断开: ' + state);
+                        }
+                    }
+                };
+
+                // 处理信令消息
+                signalingChannel.onmessage = (event) => {
+                    const msg = event.data;
+                    if (!msg || !msg.from) return;
+                    if (msg.from !== 'sender') return;  // 只处理来自发送端的信令
+
+                    switch (msg.type) {
+                        case 'sender-ready':
+                            // 发送端已就绪，通知发送端接收端加入
+                            if (signalingChannel) {
+                                signalingChannel.postMessage({
+                                    type: 'receiver-joined',
+                                    from: 'receiver'
+                                });
+                            }
+                            updateLog('👋 已向发送端发送加入请求');
+                            break;
+                        case 'offer':
+                            if (localConnection && msg.offer) {
+                                localConnection.setRemoteDescription(new RTCSessionDescription(msg.offer))
+                                    .then(() => {
+                                        return localConnection.createAnswer();
+                                    })
+                                    .then(answer => {
+                                        return localConnection.setLocalDescription(answer);
+                                    })
+                                    .then(() => {
+                                        if (signalingChannel) {
+                                            signalingChannel.postMessage({
+                                                type: 'answer',
+                                                answer: localConnection.localDescription,
+                                                from: 'receiver'
+                                            });
+                                        }
+                                    })
+                                    .catch(e => updateLog('❌ 处理 offer 失败: ' + e.message));
+                            }
+                            break;
+                        case 'ice-candidate':
+                            if (localConnection && msg.candidate) {
+                                localConnection.addIceCandidate(new RTCIceCandidate(msg.candidate))
+                                    .catch(e => console.warn('添加 ICE 失败', e));
+                            }
+                            break;
+                        default:
+                            console.log('未知信令', msg.type);
+                    }
+                };
+
+                // 额外发送一个加入请求，同时应对发送端先创建但未广播的情况
+                if (signalingChannel) {
+                    signalingChannel.postMessage({
+                        type: 'receiver-joined',
+                        from: 'receiver'
                     });
                 }
-                if (isResizing) {
-                    endResize();
-                }
-            });
-            
-            // 百度搜索表单提交（保持正常）
-            const baiduForm = document.getElementById('baiduSearchForm');
-            if (baiduForm) {
-                baiduForm.addEventListener('submit', (e) => {
-                    const input = baiduForm.querySelector('input[name="wd"]');
-                    if (input && input.value.trim() === '') {
-                        e.preventDefault();
-                        alert('请输入搜索关键词');
-                    }
-                });
+                updateLog('📡 已加入房间 [' + room + ']，等待发送端...');
             }
-            
-            // 初始确保知乎iframe加载正常，如遇X-Frame-Options问题可静默处理
-            const zhihuFrame = document.getElementById('zhihuFrame');
-            zhihuFrame.addEventListener('error', () => {
-                console.log('知乎页面可能受X-Frame-Options限制，内容区域保留。');
+
+            // 事件监听
+            joinBtn.addEventListener('click', joinRoom);
+            clearMsgBtn.addEventListener('click', () => {
+                receivedMessageDiv.innerText = '等待发送端发送内容...';
+                updateLog('🗑️ 已清空显示');
             });
-            
-            // 防止触摸设备上的默认手势干扰
-            window.addEventListener('touchstart', (e) => {
-                if (e.target.closest('.window-drag-bar') || e.target.closest('.resize-corner') || 
-                    e.target.closest('.resize-corner-left') || e.target.closest('.resize-edge-right') || 
-                    e.target.closest('.resize-edge-bottom')) {
+
+            roomInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
                     e.preventDefault();
+                    joinRoom();
                 }
-            }, { passive: false });
-            
+            });
+
+            // 初始自动尝试加入默认房间
+            window.addEventListener('load', () => {
+                // 延迟一点点确保所有元素就绪
+                setTimeout(() => {
+                    joinRoom();
+                }, 300);
+            });
+
+            window.addEventListener('beforeunload', () => {
+                closeAll();
+            });
         })();
     </script>
 </body>
