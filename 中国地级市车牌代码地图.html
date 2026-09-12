@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>中国地级市车牌代码地图</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: #0a1628;
+      color: #e0e6f0;
+      overflow: hidden;
+      height: 100vh;
+    }
+    #app { display: flex; height: 100vh; width: 100vw; }
+    #sidebar {
+      width: 280px;
+      background: #0f1d32;
+      border-right: 1px solid #1e3a5f;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    #sidebar h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #4fc3f7;
+      letter-spacing: 1px;
+      text-align: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #1e3a5f;
+    }
+    #sidebar label {
+      font-size: 13px;
+      color: #8aa4c8;
+      margin-bottom: 4px;
+      display: block;
+    }
+    #provinceSelect {
+      width: 100%;
+      padding: 8px 12px;
+      background: #162540;
+      border: 1px solid #2a4a6f;
+      border-radius: 6px;
+      color: #e0e6f0;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+    }
+    #provinceSelect:focus { border-color: #4fc3f7; }
+    #provinceSelect option { background: #162540; color: #e0e6f0; }
+    #infoPanel {
+      flex: 1;
+      overflow-y: auto;
+      background: #12253e;
+      border-radius: 8px;
+      padding: 14px;
+      border: 1px solid #1e3a5f;
+      min-height: 0;
+    }
+    #infoPanel h3 {
+      font-size: 15px;
+      color: #4fc3f7;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e3a5f;
+    }
+    #infoPanel .city-item {
+      padding: 8px 10px;
+      margin-bottom: 4px;
+      border-radius: 5px;
+      background: #162540;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s;
+    }
+    #infoPanel .city-item:hover { background: #1e3555; }
+    #infoPanel .city-item .name { color: #c0d4ee; }
+    #infoPanel .city-item .plate {
+      color: #ffab40;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    #infoPanel .city-item.multi .plate { color: #ff6e40; }
+    #infoPanel .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: #162540;
+      border-radius: 5px;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+    #infoPanel .stat-row span { color: #8aa4c8; }
+    #infoPanel .stat-row b { color: #4fc3f7; font-size: 16px; }
+    #infoPanel::-webkit-scrollbar { width: 5px; }
+    #infoPanel::-webkit-scrollbar-thumb { background: #2a4a6f; border-radius: 3px; }
+    #infoPanel .empty-tip {
+      color: #5a7a9e;
+      font-size: 13px;
+      text-align: center;
+      padding-top: 40px;
+      line-height: 1.8;
+    }
+    #chartWrapper { flex: 1; position: relative; min-width: 0; }
+    #chart { width: 100%; height: 100%; }
+    #backBtn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+      padding: 7px 16px;
+      background: rgba(15, 29, 50, 0.9);
+      border: 1px solid #2a4a6f;
+      border-radius: 6px;
+      color: #4fc3f7;
+      font-size: 13px;
+      cursor: pointer;
+      display: none;
+      transition: all 0.2s;
+      backdrop-filter: blur(6px);
+    }
+    #backBtn:hover { background: #1a3050; border-color: #4fc3f7; }
+    #legendBox {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 10;
+      background: rgba(10, 22, 40, 0.85);
+      border: 1px solid #1e3a5f;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 11px;
+      color: #8aa4c8;
+      line-height: 1.8;
+      backdrop-filter: blur(6px);
+    }
+    #legendBox span.dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #4fc3f7;
+      font-size: 14px;
+      z-index: 20;
+      background: rgba(10, 22, 40, 0.9);
+      padding: 14px 28px;
+      border-radius: 8px;
+      border: 1px solid #1e3a5f;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="sidebar">
+      <h1>🚗 中国车牌代码地图</h1>
+      <div>
+        <label for="provinceSelect">选择省份 / 直辖市</label>
+        <select id="provinceSelect">
+          <option value="china">全国（地级市视图）</option>
+        </select>
+      </div>
+      <div id="infoPanel">
+        <div class="empty-tip">
+          单击地图城市查看详情<br />双击城市进入所在省份
+        </div>
+      </div>
+    </div>
+    <div id="chartWrapper">
+      <div id="backBtn">← 返回全国</div>
+      <div id="chart"></div>
+      <div id="legendBox">
+        <span class="dot" style="background:#2a5a8f;"></span> 普通城市<br />
+        <span class="dot" style="background:#ff6e40;"></span> 多字母城市<br />
+        <span class="dot" style="background:#4fc3f7;"></span> 当前选中
+      </div>
+      <div id="loading">地图加载中...</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script>
+    // ============================================================
+    // 车牌代码数据（地级市 → 车牌字母）
+    // ============================================================
+    const PLATE_DATA = {
+      // 直辖市
+      "北京市": { plate: ["京A","京B","京C","京E","京F","京G","京H","京J","京K","京L","京M","京N","京P","京Q","京Y"], isDirect: true },
+      "上海市": { plate: ["沪A","沪B","沪C","沪D","沪E","沪F","沪G","沪H","沪J","沪K","沪L","沪M","沪N","沪R"], isDirect: true },
+      "天津市": { plate: ["津A","津B","津C","津D","津E","津F","津G","津H","津J","津K","津L","津M","津N","津P","津Q","津R"], isDirect: true },
+      "重庆市": { plate: ["渝A","渝B","渝C","渝D","渝F","渝G","渝H"], isDirect: true },
+
+      // 河北省
+      "石家庄市":"冀A","唐山市":"冀B","秦皇岛市":"冀C","邯郸市":"冀D","邢台市":"冀E",
+      "保定市":"冀F","张家口市":"冀G","承德市":"冀H","沧州市":"冀J","廊坊市":"冀R",
+      "衡水市":"冀T","雄安新区":"冀X",
+      // 山西省
+      "太原市":"晋A","大同市":"晋B","阳泉市":"晋C","长治市":"晋D","晋城市":"晋E",
+      "朔州市":"晋F","忻州市":"晋H","吕梁市":"晋J","晋中市":"晋K","临汾市":"晋L","运城市":"晋M",
+      // 内蒙古自治区
+      "呼和浩特市":"蒙A","包头市":"蒙B","乌海市":"蒙C","赤峰市":"蒙D","呼伦贝尔市":"蒙E",
+      "兴安盟":"蒙F","通辽市":"蒙G","锡林郭勒盟":"蒙H","乌兰察布市":"蒙J","鄂尔多斯市":"蒙K",
+      "巴彦淖尔市":"蒙L","阿拉善盟":"蒙M",
+      // 辽宁省
+      "沈阳市":"辽A","大连市":"辽B","鞍山市":"辽C","抚顺市":"辽D","本溪市":"辽E",
+      "丹东市":"辽F","锦州市":"辽G","营口市":"辽H","阜新市":"辽J","辽阳市":"辽K",
+      "盘锦市":"辽L","铁岭市":"辽M","朝阳市":"辽N","葫芦岛市":"辽P",
+      // 吉林省
+      "长春市":"吉A","吉林市":"吉B","四平市":"吉C","辽源市":"吉D","通化市":"吉E",
+      "白山市":"吉F","白城市":"吉G","延边朝鲜族自治州":"吉H","松原市":"吉J","长白山保护开发区":"吉K",
+      // 黑龙江省
+      "哈尔滨市":{plate:["黑A","黑L"]},"齐齐哈尔市":"黑B","牡丹江市":"黑C","佳木斯市":"黑D",
+      "大庆市":"黑E","伊春市":"黑F","鸡西市":"黑G","鹤岗市":"黑H","双鸭山市":"黑J",
+      "七台河市":"黑K","绥化市":"黑M","黑河市":"黑N","大兴安岭地区":"黑P",
+      // 江苏省
+      "南京市":"苏A","无锡市":"苏B","徐州市":"苏C","常州市":"苏D","苏州市":{plate:["苏E","苏U"]},
+      "南通市":"苏F","连云港市":"苏G","淮安市":"苏H","盐城市":"苏J","扬州市":"苏K",
+      "镇江市":"苏L","泰州市":"苏M","宿迁市":"苏N",
+      // 浙江省
+      "杭州市":{plate:["浙A","浙M"]},"宁波市":"浙B","温州市":"浙C","绍兴市":"浙D","湖州市":"浙E",
+      "嘉兴市":"浙F","金华市":"浙G","衢州市":"浙H","台州市":"浙J","丽水市":"浙K","舟山市":"浙L",
+      // 安徽省
+      "合肥市":{plate:["皖A","皖Q"]},"芜湖市":"皖B","蚌埠市":"皖C","淮南市":"皖D","马鞍山市":"皖E",
+      "淮北市":"皖F","铜陵市":"皖G","安庆市":"皖H","黄山市":{plate:["皖J","皖T"]},
+      "阜阳市":"皖K","宿州市":"皖L","滁州市":"皖M","六安市":"皖N","宣城市":"皖P",
+      "池州市":"皖R","亳州市":"皖S",
+      // 福建省
+      "福州市":{plate:["闽A","闽K"]},"莆田市":"闽B","泉州市":"闽C","厦门市":"闽D","漳州市":"闽E",
+      "龙岩市":"闽F","三明市":"闽G","南平市":"闽H","宁德市":"闽J",
+      // 江西省
+      "南昌市":{plate:["赣A","赣M"]},"赣州市":"赣B","宜春市":"赣C","吉安市":"赣D","上饶市":"赣E",
+      "抚州市":"赣F","九江市":"赣G","景德镇市":"赣H","萍乡市":"赣J","新余市":"赣K","鹰潭市":"赣L",
+      // 山东省
+      "济南市":{plate:["鲁A","鲁S"]},"青岛市":{plate:["鲁B","鲁U"]},"淄博市":"鲁C","枣庄市":"鲁D",
+      "东营市":"鲁E","烟台市":{plate:["鲁F","鲁Y"]},"潍坊市":{plate:["鲁G","鲁V"]},
+      "济宁市":"鲁H","泰安市":"鲁J","威海市":"鲁K","日照市":"鲁L","滨州市":"鲁M",
+      "德州市":"鲁N","聊城市":"鲁P","临沂市":"鲁Q","菏泽市":"鲁R",
+      // 河南省
+      "郑州市":{plate:["豫A","豫V"]},"开封市":"豫B","洛阳市":"豫C","平顶山市":"豫D","安阳市":"豫E",
+      "鹤壁市":"豫F","新乡市":"豫G","焦作市":"豫H","濮阳市":"豫J","许昌市":"豫K",
+      "漯河市":"豫L","三门峡市":"豫M","商丘市":"豫N","周口市":"豫P","驻马店市":"豫Q",
+      "南阳市":"豫R","信阳市":"豫S","济源市":"豫U",
+      // 湖北省
+      "武汉市":{plate:["鄂A","鄂W"]},"黄石市":"鄂B","十堰市":"鄂C","宜昌市":"鄂E","襄阳市":"鄂F",
+      "鄂州市":"鄂G","荆门市":"鄂H","孝感市":"鄂K","荆州市":"鄂D","黄冈市":"鄂J",
+      "咸宁市":"鄂L","随州市":"鄂S","恩施土家族苗族自治州":"鄂Q",
+      "仙桃市":"鄂M","潜江市":"鄂N","天门市":"鄂R","神农架林区":"鄂P",
+      // 湖南省
+      "长沙市":"湘A","株洲市":"湘B","湘潭市":"湘C","衡阳市":"湘D","邵阳市":"湘E",
+      "岳阳市":"湘F","张家界市":"湘G","益阳市":"湘H","常德市":"湘J","娄底市":"湘K",
+      "郴州市":"湘L","永州市":"湘M","怀化市":"湘N","湘西土家族苗族自治州":"湘U",
+      // 广东省
+      "广州市":"粤A","深圳市":"粤B","珠海市":"粤C","汕头市":"粤D","佛山市":"粤E",
+      "韶关市":"粤F","湛江市":"粤G","肇庆市":"粤H","江门市":"粤J","茂名市":"粤K",
+      "惠州市":"粤L","梅州市":"粤M","汕尾市":"粤N","河源市":"粤P","阳江市":"粤Q",
+      "清远市":"粤R","东莞市":"粤S","中山市":"粤T","潮州市":"粤U","揭阳市":"粤V","云浮市":"粤W",
+      // 广西壮族自治区
+      "南宁市":{plate:["桂A","桂F"]},"柳州市":"桂B","桂林市":{plate:["桂C","桂H"]},
+      "梧州市":"桂D","北海市":"桂E","防城港市":"桂P","钦州市":"桂N","贵港市":"桂R",
+      "玉林市":"桂K","百色市":"桂L","贺州市":"桂J","河池市":"桂M","来宾市":"桂G","崇左市":"桂F",
+      // 海南省 —— 新增完整数据
+      "海口市":"琼A","三亚市":"琼B",
+      "琼海市":{plate:["琼C"]},"文昌市":{plate:["琼C"]},"万宁市":{plate:["琼C"]},
+      "定安县":{plate:["琼C"]},"屯昌县":{plate:["琼C"]},"澄迈县":{plate:["琼C"]},
+      "临高县":{plate:["琼C"]},"三沙市":{plate:["琼C","琼G"]},
+      "五指山市":"琼D","东方市":"琼D","白沙黎族自治县":"琼D","昌江黎族自治县":"琼D",
+      "乐东黎族自治县":"琼D","陵水黎族自治县":"琼D","保亭黎族苗族自治县":"琼D",
+      "琼中黎族苗族自治县":"琼D","洋浦经济开发区":"琼E","儋州市":"琼F",
+      // 台湾省 —— 新增完整数据（参考易车百科）
+      "台北市":"台A","新北市":"台B","桃园市":"台C","台中市":"台D","台南市":"台E",
+      "高雄市":"台F","基隆市":"台G","新竹市":"台H","嘉义市":"台J",
+      "宜兰县":"台K","新竹县":"台L","苗栗县":"台M","彰化县":"台N","南投县":"台P",
+      "云林县":"台Q","嘉义县":"台R","屏东县":"台S","台东县":"台T","花莲县":"台U",
+      "澎湖县":"台V","连江县":"台W","金门县":"台X",
+      // 四川省
+      "成都市":{plate:["川A","川G"]},"绵阳市":"川B","自贡市":"川C","攀枝花市":"川D","泸州市":"川E",
+      "德阳市":"川F","广元市":"川H","遂宁市":"川J","内江市":"川K","乐山市":"川L",
+      "南充市":"川R","眉山市":"川Z","宜宾市":"川Q","广安市":"川X","达州市":"川S",
+      "雅安市":"川T","巴中市":"川Y","资阳市":"川M","阿坝藏族羌族自治州":"川U",
+      "甘孜藏族自治州":"川V","凉山彝族自治州":"川W",
+      // 贵州省
+      "贵阳市":"贵A","六盘水市":"贵B","遵义市":"贵C","安顺市":"贵G","毕节市":"贵F",
+      "铜仁市":"贵D","黔西南布依族苗族自治州":"贵E","黔东南苗族侗族自治州":"贵H",
+      "黔南布依族苗族自治州":"贵J",
+      // 云南省
+      "昆明市":"云A","曲靖市":"云D","玉溪市":"云F","保山市":"云M","昭通市":"云C",
+      "丽江市":"云P","普洱市":"云J","临沧市":"云S","楚雄彝族自治州":"云E",
+      "红河哈尼族彝族自治州":"云G","文山壮族苗族自治州":"云H","西双版纳傣族自治州":"云K",
+      "大理白族自治州":"云L","德宏傣族景颇族自治州":"云N","怒江傈僳族自治州":"云Q",
+      "迪庆藏族自治州":"云R",
+      // 西藏自治区
+      "拉萨市":"藏A","日喀则市":"藏D","昌都市":"藏B","林芝市":"藏G","山南市":"藏C",
+      "那曲市":"藏E","阿里地区":"藏F",
+      // 陕西省
+      "西安市":{plate:["陕A","陕U"]},"铜川市":"陕B","宝鸡市":"陕C","咸阳市":"陕D","渭南市":"陕E",
+      "延安市":"陕J","汉中市":"陕F","榆林市":"陕K","安康市":"陕G","商洛市":"陕H",
+      // 甘肃省
+      "兰州市":"甘A","嘉峪关市":"甘B","金昌市":"甘C","白银市":"甘D","天水市":"甘E",
+      "武威市":"甘H","张掖市":"甘G","平凉市":"甘L","酒泉市":"甘F","庆阳市":"甘M",
+      "定西市":"甘J","陇南市":"甘K","临夏回族自治州":"甘N","甘南藏族自治州":"甘P",
+      // 青海省
+      "西宁市":"青A","海东市":"青B","海北藏族自治州":"青C","黄南藏族自治州":"青D",
+      "海南藏族自治州":"青E","果洛藏族自治州":"青F","玉树藏族自治州":"青G","海西蒙古族藏族自治州":"青H",
+      // 宁夏回族自治区
+      "银川市":"宁A","石嘴山市":"宁B","吴忠市":"宁C","固原市":"宁D","中卫市":"宁E",
+      // 新疆维吾尔自治区
+      "乌鲁木齐市":"新A","克拉玛依市":"新J","吐鲁番市":"新K","哈密市":"新L",
+      "昌吉回族自治州":"新B","博尔塔拉蒙古自治州":"新E","巴音郭楞蒙古自治州":"新M",
+      "阿克苏地区":"新N","克孜勒苏柯尔克孜自治州":"新P","喀什地区":"新Q",
+      "和田地区":"新R","伊犁哈萨克自治州":"新D","塔城地区":"新G","阿勒泰地区":"新H",
+      "石河子市":"新C","阿拉尔市":"新N","图木舒克市":"新Q","五家渠市":"新B",
+      "北屯市":"新H","铁门关市":"新M","双河市":"新E","可克达拉市":"新D","昆玉市":"新S","胡杨河市":"新D",
+    };
+
+    // ============================================================
+    // 省份 → adcode / 简称  （新增台湾省、海南省）
+    // ============================================================
+    const PROVINCE_INFO = {
+      "北京市":{short:"京",adcode:"110000"},"天津市":{short:"津",adcode:"120000"},
+      "河北省":{short:"冀",adcode:"130000"},"山西省":{short:"晋",adcode:"140000"},
+      "内蒙古自治区":{short:"蒙",adcode:"150000"},"辽宁省":{short:"辽",adcode:"210000"},
+      "吉林省":{short:"吉",adcode:"220000"},"黑龙江省":{short:"黑",adcode:"230000"},
+      "上海市":{short:"沪",adcode:"310000"},"江苏省":{short:"苏",adcode:"320000"},
+      "浙江省":{short:"浙",adcode:"330000"},"安徽省":{short:"皖",adcode:"340000"},
+      "福建省":{short:"闽",adcode:"350000"},"江西省":{short:"赣",adcode:"360000"},
+      "山东省":{short:"鲁",adcode:"370000"},"河南省":{short:"豫",adcode:"410000"},
+      "湖北省":{short:"鄂",adcode:"420000"},"湖南省":{short:"湘",adcode:"430000"},
+      "广东省":{short:"粤",adcode:"440000"},"广西壮族自治区":{short:"桂",adcode:"450000"},
+      "海南省":{short:"琼",adcode:"460000"},
+      "重庆市":{short:"渝",adcode:"500000"},
+      "四川省":{short:"川",adcode:"510000"},"贵州省":{short:"贵",adcode:"520000"},
+      "云南省":{short:"云",adcode:"530000"},"西藏自治区":{short:"藏",adcode:"540000"},
+      "陕西省":{short:"陕",adcode:"610000"},"甘肃省":{short:"甘",adcode:"620000"},
+      "青海省":{short:"青",adcode:"630000"},"宁夏回族自治区":{short:"宁",adcode:"640000"},
+      "新疆维吾尔自治区":{short:"新",adcode:"650000"},
+      "台湾省":{short:"台",adcode:"710000"},
+      "香港特别行政区":{short:"港",adcode:"810000"},
+      "澳门特别行政区":{short:"澳",adcode:"820000"},
+    };
+
+    // 省份 → 地级市列表（新增海南省、台湾省完整列表）
+    const PROVINCE_CITY_MAP = {
+      "北京市":["北京市"],"天津市":["天津市"],"上海市":["上海市"],"重庆市":["重庆市"],
+      "河北省":["石家庄市","唐山市","秦皇岛市","邯郸市","邢台市","保定市","张家口市","承德市","沧州市","廊坊市","衡水市","雄安新区"],
+      "山西省":["太原市","大同市","阳泉市","长治市","晋城市","朔州市","忻州市","吕梁市","晋中市","临汾市","运城市"],
+      "内蒙古自治区":["呼和浩特市","包头市","乌海市","赤峰市","呼伦贝尔市","兴安盟","通辽市","锡林郭勒盟","乌兰察布市","鄂尔多斯市","巴彦淖尔市","阿拉善盟"],
+      "辽宁省":["沈阳市","大连市","鞍山市","抚顺市","本溪市","丹东市","锦州市","营口市","阜新市","辽阳市","盘锦市","铁岭市","朝阳市","葫芦岛市"],
+      "吉林省":["长春市","吉林市","四平市","辽源市","通化市","白山市","白城市","延边朝鲜族自治州","松原市","长白山保护开发区"],
+      "黑龙江省":["哈尔滨市","齐齐哈尔市","牡丹江市","佳木斯市","大庆市","伊春市","鸡西市","鹤岗市","双鸭山市","七台河市","绥化市","黑河市","大兴安岭地区"],
+      "江苏省":["南京市","无锡市","徐州市","常州市","苏州市","南通市","连云港市","淮安市","盐城市","扬州市","镇江市","泰州市","宿迁市"],
+      "浙江省":["杭州市","宁波市","温州市","绍兴市","湖州市","嘉兴市","金华市","衢州市","台州市","丽水市","舟山市"],
+      "安徽省":["合肥市","芜湖市","蚌埠市","淮南市","马鞍山市","淮北市","铜陵市","安庆市","黄山市","阜阳市","宿州市","滁州市","六安市","宣城市","池州市","亳州市"],
+      "福建省":["福州市","莆田市","泉州市","厦门市","漳州市","龙岩市","三明市","南平市","宁德市"],
+      "江西省":["南昌市","赣州市","宜春市","吉安市","上饶市","抚州市","九江市","景德镇市","萍乡市","新余市","鹰潭市"],
+      "山东省":["济南市","青岛市","淄博市","枣庄市","东营市","烟台市","潍坊市","济宁市","泰安市","威海市","日照市","滨州市","德州市","聊城市","临沂市","菏泽市"],
+      "河南省":["郑州市","开封市","洛阳市","平顶山市","安阳市","鹤壁市","新乡市","焦作市","濮阳市","许昌市","漯河市","三门峡市","商丘市","周口市","驻马店市","南阳市","信阳市","济源市"],
+      "湖北省":["武汉市","黄石市","十堰市","宜昌市","襄阳市","鄂州市","荆门市","孝感市","荆州市","黄冈市","咸宁市","随州市","恩施土家族苗族自治州","仙桃市","潜江市","天门市","神农架林区"],
+      "湖南省":["长沙市","株洲市","湘潭市","衡阳市","邵阳市","岳阳市","张家界市","益阳市","常德市","娄底市","郴州市","永州市","怀化市","湘西土家族苗族自治州"],
+      "广东省":["广州市","深圳市","珠海市","汕头市","佛山市","韶关市","湛江市","肇庆市","江门市","茂名市","惠州市","梅州市","汕尾市","河源市","阳江市","清远市","东莞市","中山市","潮州市","揭阳市","云浮市"],
+      "广西壮族自治区":["南宁市","柳州市","桂林市","梧州市","北海市","防城港市","钦州市","贵港市","玉林市","百色市","贺州市","河池市","来宾市","崇左市"],
+      // 海南省 —— 新增完整地级市/县列表
+      "海南省":["海口市","三亚市","三沙市","儋州市","琼海市","文昌市","万宁市","定安县","屯昌县","澄迈县","临高县","五指山市","东方市","白沙黎族自治县","昌江黎族自治县","乐东黎族自治县","陵水黎族自治县","保亭黎族苗族自治县","琼中黎族苗族自治县","洋浦经济开发区"],
+      // 台湾省 —— 新增完整地级市/县列表
+      "台湾省":["台北市","新北市","桃园市","台中市","台南市","高雄市","基隆市","新竹市","嘉义市","宜兰县","新竹县","苗栗县","彰化县","南投县","云林县","嘉义县","屏东县","台东县","花莲县","澎湖县","连江县","金门县"],
+      "四川省":["成都市","绵阳市","自贡市","攀枝花市","泸州市","德阳市","广元市","遂宁市","内江市","乐山市","南充市","眉山市","宜宾市","广安市","达州市","雅安市","巴中市","资阳市","阿坝藏族羌族自治州","甘孜藏族自治州","凉山彝族自治州"],
+      "贵州省":["贵阳市","六盘水市","遵义市","安顺市","毕节市","铜仁市","黔西南布依族苗族自治州","黔东南苗族侗族自治州","黔南布依族苗族自治州"],
+      "云南省":["昆明市","曲靖市","玉溪市","保山市","昭通市","丽江市","普洱市","临沧市","楚雄彝族自治州","红河哈尼族彝族自治州","文山壮族苗族自治州","西双版纳傣族自治州","大理白族自治州","德宏傣族景颇族自治州","怒江傈僳族自治州","迪庆藏族自治州"],
+      "西藏自治区":["拉萨市","日喀则市","昌都市","林芝市","山南市","那曲市","阿里地区"],
+      "陕西省":["西安市","铜川市","宝鸡市","咸阳市","渭南市","延安市","汉中市","榆林市","安康市","商洛市"],
+      "甘肃省":["兰州市","嘉峪关市","金昌市","白银市","天水市","武威市","张掖市","平凉市","酒泉市","庆阳市","定西市","陇南市","临夏回族自治州","甘南藏族自治州"],
+      "青海省":["西宁市","海东市","海北藏族自治州","黄南藏族自治州","海南藏族自治州","果洛藏族自治州","玉树藏族自治州","海西蒙古族藏族自治州"],
+      "宁夏回族自治区":["银川市","石嘴山市","吴忠市","固原市","中卫市"],
+      "新疆维吾尔自治区":["乌鲁木齐市","克拉玛依市","吐鲁番市","哈密市","昌吉回族自治州","博尔塔拉蒙古自治州","巴音郭楞蒙古自治州","阿克苏地区","克孜勒苏柯尔克孜自治州","喀什地区","和田地区","伊犁哈萨克自治州","塔城地区","阿勒泰地区","石河子市","阿拉尔市","图木舒克市","五家渠市","北屯市","铁门关市","双河市","可克达拉市","昆玉市","胡杨河市"],
+    };
+
+    // ============================================================
+    // 工具函数
+    // ============================================================
+    function getPlateDisplay(cityName) {
+      const d = PLATE_DATA[cityName];
+      if (!d) return null;
+      if (typeof d === "string") return { plate: [d], isMulti: false, isDirect: false };
+      return {
+        plate: d.plate || [d],
+        isMulti: (d.plate && d.plate.length > 1) || false,
+        isDirect: d.isDirect || false,
+      };
+    }
+
+    function getProvinceOfCity(cityName) {
+      for (const [prov, cities] of Object.entries(PROVINCE_CITY_MAP)) {
+        if (cities.includes(cityName)) return prov;
+      }
+      return null;
+    }
+
+    // ============================================================
+    // ECharts 初始化
+    // ============================================================
+    const chartDom = document.getElementById("chart");
+    const chart = echarts.init(chartDom, null, { renderer: "canvas" });
+    const loadingEl = document.getElementById("loading");
+    const backBtn = document.getElementById("backBtn");
+    const provinceSelect = document.getElementById("provinceSelect");
+    const infoPanel = document.getElementById("infoPanel");
+
+    let currentLevel = "china";
+    let currentProvince = null;
+    let selectedCityName = null;
+    let renderToken = 0;
+    const geoJsonCache = {};
+
+    // 填充省份下拉框
+    Object.keys(PROVINCE_INFO).forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p;
+      opt.textContent = p;
+      provinceSelect.appendChild(opt);
+    });
+
+    // ============================================================
+    // 网络请求
+    // ============================================================
+    async function fetchGeoJson(adcode) {
+      if (geoJsonCache[adcode]) return geoJsonCache[adcode];
+      const urls = [
+        `https://geo.datav.aliyun.com/areas_v3/bound/${adcode}_full.json`,
+        `https://geo.datav.aliyun.com/areas_v3/bound/${adcode}.json`,
+      ];
+      for (const url of urls) {
+        try {
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const json = await resp.json();
+          geoJsonCache[adcode] = json;
+          return json;
+        } catch (e) {
+          console.warn("请求失败:", url, e.message);
+        }
+      }
+      return null;
+    }
+
+    // ============================================================
+    // 构建全国地级市 GeoJSON（合并各省地级市 + 直辖市整体）
+    // ============================================================
+    async function loadAllCityGeoJson(onProgress) {
+      if (geoJsonCache["china_cities"]) {
+        if (onProgress) onProgress(1, 1);
+        return geoJsonCache["china_cities"];
+      }
+
+      const provinceGeo = await fetchGeoJson("100000_full");
+      if (!provinceGeo || !provinceGeo.features) return null;
+
+      const DIRECT = ["北京市", "天津市", "上海市", "重庆市"];
+      const features = [];
+
+      // 1. 直辖市整体 + 港澳台（保留省级 feature）
+      provinceGeo.features.forEach(f => {
+        const n = f.properties && f.properties.name;
+        if (DIRECT.includes(n) || !PROVINCE_INFO[n]) {
+          features.push(f);
+        }
+      });
+
+      // 2. 各省的地级市
+      const provNames = Object.keys(PROVINCE_INFO).filter(n => !DIRECT.includes(n) && n !== "香港特别行政区" && n !== "澳门特别行政区");
+      const total = provNames.length;
+      let done = 0;
+
+      const results = await Promise.all(provNames.map(async (pName) => {
+        const info = PROVINCE_INFO[pName];
+        try {
+          const json = await fetchGeoJson(info.adcode);
+          return json && json.features ? json.features : [];
+        } catch (e) {
+          console.warn("加载失败:", pName, e);
+          return [];
+        } finally {
+          done++;
+          if (onProgress) onProgress(done, total);
+        }
+      }));
+
+      results.forEach(arr => features.push(...arr));
+
+      const merged = { type: "FeatureCollection", features };
+      geoJsonCache["china_cities"] = merged;
+      return merged;
+    }
+
+    // ============================================================
+    // 渲染全国地图（地级市视图）
+    // ============================================================
+    async function renderChinaMap() {
+      const token = ++renderToken;
+      currentLevel = "china";
+      currentProvince = null;
+      selectedCityName = null;
+      backBtn.style.display = "none";
+      provinceSelect.value = "china";
+      loadingEl.style.display = "block";
+      loadingEl.textContent = "加载全国地图...";
+
+      // 1. 先用省级地图快速占位渲染
+      const provGeo = await fetchGeoJson("100000_full");
+      if (token !== renderToken) return;
+      if (provGeo) {
+        echarts.registerMap("china_provinces_preview", provGeo);
+        chart.setOption({
+          tooltip: { show: false },
+          series: [{
+            type: "map",
+            map: "china_provinces_preview",
+            roam: false,
+            zoom: 1.15,
+            center: [104, 36],
+            silent: true,
+            label: {
+              show: true,
+              fontSize: 9,
+              color: "#4fc3f7",
+              lineHeight: 12,
+              formatter: (p) => {
+                const s = PROVINCE_INFO[p.name] ? PROVINCE_INFO[p.name].short : "";
+                return s ? `${p.name}\n${s}` : p.name;
+              },
+            },
+            itemStyle: { areaColor: "#152a45", borderColor: "#2a5a8f", borderWidth: 0.8 },
+          }],
+        }, true);
+      }
+
+      // 2. 加载地级市数据
+      loadingEl.textContent = "正在加载地级市详细数据...";
+      const geoJson = await loadAllCityGeoJson((d, t) => {
+        if (token !== renderToken) return;
+        loadingEl.textContent = `正在加载地级市数据 ${d}/${t} ...`;
+      });
+
+      if (token !== renderToken) return;
+      if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
+        loadingEl.textContent = "地图数据加载失败，请检查网络后刷新";
+        return;
+      }
+
+      echarts.registerMap("china_cities", geoJson);
+
+      // 构建 series data
+      const cityData = geoJson.features.map(f => {
+        const name = f.properties && f.properties.name;
+        if (!name) return null;
+        const pd = getPlateDisplay(name);
+        const isMulti = pd && pd.isMulti;
+        const item = { name: name, value: isMulti ? 2 : 1 };
+        if (isMulti) {
+          item.label = { color: "#ff6e40", fontWeight: "bold", fontSize: 7.5 };
+        }
+        return item;
+      }).filter(Boolean);
+
+      const option = {
+        tooltip: {
+          trigger: "item",
+          backgroundColor: "rgba(15,29,50,0.95)",
+          borderColor: "#2a4a6f",
+          textStyle: { color: "#e0e6f0", fontSize: 12 },
+          formatter: (params) => {
+            if (params.componentType !== "series") return params.name;
+            const name = params.name;
+            const pd = getPlateDisplay(name);
+            let html = `<b style="color:#4fc3f7;font-size:13px;">${name}</b>`;
+            if (pd) {
+              html += `<br/><span style="color:#8aa4c8;">车牌代码：</span><b style="color:#ffab40;">${pd.plate.join(" / ")}</b>`;
+              if (pd.isMulti) html += `<br/><span style="color:#ff6e40;font-size:11px;">⚠ 多字母城市</span>`;
+              if (pd.isDirect) html += `<br/><span style="color:#5a7a9e;font-size:11px;">直辖市 · 全市通用</span>`;
+            } else {
+              html += `<br/><span style="color:#5a7a9e;">暂无车牌数据</span>`;
+            }
+            const prov = getProvinceOfCity(name);
+            if (prov && prov !== name) {
+              html += `<br/><span style="color:#5a7a9e;font-size:11px;">所属：${prov}</span>`;
+            }
+            html += `<br/><span style="color:#3a5a7e;font-size:10px;">单击查看详情 · 双击进入省份</span>`;
+            return html;
+          },
+        },
+        series: [{
+          type: "map",
+          map: "china_cities",
+          roam: true,
+          zoom: 1.1,
+          center: [104, 36],
+          selectedMode: "single",
+          label: {
+            show: true,
+            fontSize: 7,
+            lineHeight: 9.5,
+            color: "#9ab8d8",
+            formatter: (params) => {
+              const name = params.name;
+              const pd = getPlateDisplay(name);
+              if (!pd) return name;
+              if (pd.isDirect) return `${name}\n${pd.plate[0].charAt(0)}`;
+              return `${name}\n${pd.plate.join(" ")}`;
+            },
+          },
+          labelLayout: { hideOverlap: true },
+          itemStyle: {
+            areaColor: "#152a45",
+            borderColor: "#1e3a5f",
+            borderWidth: 0.5,
+          },
+          emphasis: {
+            label: { show: true, color: "#ffffff", fontSize: 9, fontWeight: "bold" },
+            itemStyle: { areaColor: "#2a5a8f", borderColor: "#4fc3f7", borderWidth: 1.5 },
+          },
+          select: {
+            label: { show: true, color: "#ffffff", fontSize: 9, fontWeight: "bold" },
+            itemStyle: { areaColor: "#1e5a8f", borderColor: "#4fc3f7", borderWidth: 2 },
+          },
+          data: cityData,
+        }],
+      };
+
+      chart.setOption(option, true);
+      loadingEl.style.display = "none";
+      updateInfoPanel(null);
+
+      // 事件绑定
+      chart.off("click");
+      chart.off("dblclick");
+
+      chart.on("click", (params) => {
+        if (params.componentType !== "series") return;
+        const name = params.name;
+        if (!name) return;
+        selectedCityName = name;
+        updateInfoPanel(name);
+      });
+
+      chart.on("dblclick", (params) => {
+        if (params.componentType !== "series") return;
+        const name = params.name;
+        const prov = getProvinceOfCity(name);
+        if (prov && PROVINCE_INFO[prov]) {
+          provinceSelect.value = prov;
+          drillToProvince(prov);
+        }
+      });
+    }
+
+    // ============================================================
+    // 下钻到省份
+    // ============================================================
+    async function drillToProvince(provinceName) {
+      const info = PROVINCE_INFO[provinceName];
+      if (!info) return;
+
+      const token = ++renderToken;
+      currentLevel = "province";
+      currentProvince = provinceName;
+      selectedCityName = null;
+      backBtn.style.display = "block";
+      loadingEl.style.display = "block";
+      loadingEl.textContent = `${provinceName} 地图加载中...`;
+
+      const DIRECT = ["北京市", "上海市", "天津市", "重庆市"];
+      const isDirect = DIRECT.includes(provinceName);
+
+      let geoJson;
+      if (isDirect) {
+        const provGeo = await fetchGeoJson("100000_full");
+        if (token !== renderToken) return;
+        const f = provGeo && provGeo.features
+          ? provGeo.features.find(x => x.properties && x.properties.name === provinceName)
+          : null;
+        geoJson = { type: "FeatureCollection", features: f ? [f] : [] };
+      } else {
+        geoJson = await fetchGeoJson(info.adcode);
+      }
+
+      if (token !== renderToken) return;
+      if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
+        loadingEl.textContent = "地图数据加载失败";
+        return;
+      }
+
+      echarts.registerMap(provinceName, geoJson);
+      provinceSelect.value = provinceName;
+
+      const cities = PROVINCE_CITY_MAP[provinceName] || [];
+
+      let seriesData = [];
+      if (isDirect) {
+        const pd = PLATE_DATA[provinceName];
+        const plateStr = pd.plate ? pd.plate.join(" ") : "";
+        seriesData = [{
+          name: provinceName,
+          value: 1,
+          label: {
+            show: true,
+            formatter: `${provinceName}\n${plateStr}`,
+            fontSize: 11,
+            color: "#ffab40",
+            lineHeight: 18,
+            fontWeight: "bold",
+          },
+        }];
+      } else {
+        seriesData = cities.map(city => {
+          const pd = getPlateDisplay(city);
+          if (!pd) {
+            return { name: city, value: 0, label: { show: true, formatter: city, fontSize: 9, color: "#8aa4c8" } };
+          }
+          const plateStr = pd.plate.join(" ");
+          const isMulti = pd.isMulti;
+          return {
+            name: city,
+            value: isMulti ? 2 : 1,
+            label: {
+              show: true,
+              formatter: isMulti ? `${city}\n${plateStr}` : `${city} ${plateStr}`,
+              fontSize: isMulti ? 9 : 8,
+              color: isMulti ? "#ff6e40" : "#c0d4ee",
+              lineHeight: isMulti ? 14 : 12,
+              fontWeight: isMulti ? "bold" : "normal",
+            },
+          };
+        });
+      }
+
+      let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+      geoJson.features.forEach(f => {
+        const coords = f.geometry && f.geometry.coordinates;
+        const flatten = (arr) => {
+          if (typeof arr[0] === "number") {
+            minLng = Math.min(minLng, arr[0]);
+            maxLng = Math.max(maxLng, arr[0]);
+            minLat = Math.min(minLat, arr[1]);
+            maxLat = Math.max(maxLat, arr[1]);
+          } else if (Array.isArray(arr)) {
+            arr.forEach(flatten);
+          }
+        };
+        if (coords) flatten(coords);
+      });
+
+      const centerLng = (minLng + maxLng) / 2;
+      const centerLat = (minLat + maxLat) / 2;
+      const lngSpan = maxLng - minLng;
+      const latSpan = maxLat - minLat;
+      let zoom = 1.2;
+      if (lngSpan > 0 && latSpan > 0) {
+        const maxSpan = Math.max(lngSpan, latSpan);
+        if (maxSpan < 2) zoom = 4;
+        else if (maxSpan < 5) zoom = 2.5;
+        else if (maxSpan < 10) zoom = 1.8;
+        else if (maxSpan < 20) zoom = 1.2;
+        else zoom = 0.8;
+      }
+      if (isDirect) {
+        if (provinceName === "北京市" || provinceName === "天津市") zoom = 8;
+        else if (provinceName === "上海市") zoom = 10;
+        else if (provinceName === "重庆市") zoom = 3.5;
+      }
+
+      const option = {
+        tooltip: {
+          trigger: "item",
+          backgroundColor: "rgba(15,29,50,0.95)",
+          borderColor: "#2a4a6f",
+          textStyle: { color: "#e0e6f0", fontSize: 12 },
+          formatter: (params) => {
+            if (params.componentType !== "series") return params.name;
+            const cityName = params.name;
+            const pd = getPlateDisplay(cityName);
+            if (!pd) return cityName;
+            const plateStr = pd.plate.join(" / ");
+            let html = `<b style="color:#4fc3f7;font-size:13px;">${cityName}</b><br/>`;
+            html += `<span style="color:#8aa4c8;">车牌代码：</span><b style="color:#ffab40;">${plateStr}</b>`;
+            if (pd.isMulti) html += ` <span style="color:#ff6e40;">（多字母城市）</span>`;
+            if (pd.isDirect) html += `<br/><span style="color:#5a7a9e;">直辖市 · 全市通用</span>`;
+            return html;
+          },
+        },
+        series: [{
+          type: "map",
+          map: provinceName,
+          roam: true,
+          zoom: zoom,
+          center: [centerLng, centerLat],
+          selectedMode: "single",
+          label: {
+            show: true,
+            fontSize: 8,
+            color: "#c0d4ee",
+          },
+          labelLayout: { hideOverlap: true },
+          itemStyle: {
+            areaColor: "#1a3050",
+            borderColor: "#2a5a8f",
+            borderWidth: 0.8,
+          },
+          emphasis: {
+            itemStyle: { areaColor: "#2a5a8f", borderColor: "#4fc3f7", borderWidth: 1.5 },
+            label: { color: "#ffffff", fontSize: 10, fontWeight: "bold" },
+          },
+          select: {
+            itemStyle: { areaColor: "#1e5a8f", borderColor: "#4fc3f7", borderWidth: 2 },
+            label: { color: "#ffffff", fontWeight: "bold" },
+          },
+          data: seriesData,
+        }],
+      };
+
+      chart.setOption(option, true);
+      loadingEl.style.display = "none";
+
+      chart.off("click");
+      chart.off("dblclick");
+      chart.on("click", (params) => {
+        if (params.componentType !== "series") return;
+        const cityName = params.name;
+        if (!cityName) return;
+        selectedCityName = cityName;
+        updateInfoPanel(cityName);
+      });
+
+      updateInfoPanel(null);
+    }
+
+    // ============================================================
+    // 右侧信息面板
+    // ============================================================
+    function updateInfoPanel(cityName) {
+      if (!cityName) {
+        if (currentLevel === "china") {
+          const allCityNames = Object.keys(PLATE_DATA);
+          const multiCities = allCityNames.filter(n => {
+            const d = PLATE_DATA[n];
+            return d && typeof d === "object" && d.plate && d.plate.length > 1;
+          });
+          let html = `<h3>全国概览（地级市视图）</h3>`;
+          html += `<div class="stat-row"><span>收录地级行政区</span><b>${allCityNames.length}</b></div>`;
+          html += `<div class="stat-row"><span>多字母城市</span><b style="color:#ff6e40;">${multiCities.length}</b></div>`;
+          html += `<div style="font-size:11px;color:#5a7a9e;margin:12px 0 6px;">多字母城市列表（单击定位）</div>`;
+          multiCities.forEach(c => {
+            const pd = PLATE_DATA[c];
+            html += `<div class="city-item multi" style="cursor:pointer;" onclick="selectCity('${c}')">
+              <span class="name">${c}</span>
+              <span class="plate">${pd.plate.join(" ")}</span>
+            </div>`;
+          });
+          infoPanel.innerHTML = html;
+          return;
+        }
+
+        if (currentLevel === "province" && currentProvince) {
+          const cities = PROVINCE_CITY_MAP[currentProvince] || [];
+          const isDirect = ["北京市", "上海市", "天津市", "重庆市"].includes(currentProvince);
+
+          if (isDirect) {
+            const pd = PLATE_DATA[currentProvince];
+            const plateStr = pd.plate.join(" / ");
+            infoPanel.innerHTML = `
+              <h3>${currentProvince}</h3>
+              <div class="city-item" style="flex-direction:column;align-items:flex-start;gap:6px;">
+                <span class="name" style="font-size:14px;color:#ffab40;font-weight:600;">${currentProvince}</span>
+                <span style="font-size:11px;color:#5a7a9e;">直辖市 · 全市通用</span>
+                <span class="plate" style="font-size:14px;color:#ffab40;">${plateStr}</span>
+              </div>
+              <div style="font-size:11px;color:#5a7a9e;margin-top:12px;line-height:1.8;">
+                双击地图区域可返回全国视图
+              </div>
+            `;
+            return;
+          }
+
+          let html = `<h3>${currentProvince}（${PROVINCE_INFO[currentProvince].short}）</h3>`;
+          html += `<div style="font-size:11px;color:#5a7a9e;margin-bottom:8px;">共 ${cities.length} 个地级市</div>`;
+          cities.forEach(city => {
+            const pd = getPlateDisplay(city);
+            if (!pd) return;
+            const plateStr = pd.plate.join(" / ");
+            const isMulti = pd.isMulti;
+            html += `<div class="city-item ${isMulti ? 'multi' : ''}" style="cursor:pointer;" onclick="selectCity('${city}')">
+              <span class="name">${city}</span>
+              <span class="plate">${plateStr}</span>
+            </div>`;
+          });
+          infoPanel.innerHTML = html;
+        }
+        return;
+      }
+
+      const pd = getPlateDisplay(cityName);
+      if (!pd) {
+        infoPanel.innerHTML = `<h3>${cityName}</h3><div class="empty-tip">暂无车牌数据</div>`;
+        return;
+      }
+      const plateStr = pd.plate.join(" / ");
+      const isMulti = pd.isMulti;
+      const isDirect = pd.isDirect;
+
+      let html = `<h3>${cityName}</h3>`;
+      html += `<div class="city-item" style="flex-direction:column;align-items:flex-start;gap:8px;padding:14px;">
+        <span style="font-size:12px;color:#8aa4c8;">车牌代码</span>
+        <span style="font-size:20px;color:${isMulti ? '#ff6e40' : '#ffab40'};font-weight:700;letter-spacing:1px;">${plateStr}</span>`;
+      if (isMulti) {
+        html += `<span style="font-size:11px;color:#ff6e40;">⚠ 该城市拥有多个车牌字母</span>`;
+      }
+      if (isDirect) {
+        html += `<span style="font-size:11px;color:#5a7a9e;">直辖市 · 全市通用，不区分具体区域</span>`;
+      }
+      html += `</div>`;
+
+      const prov = getProvinceOfCity(cityName);
+      if (prov && PROVINCE_CITY_MAP[prov]) {
+        const siblings = PROVINCE_CITY_MAP[prov].filter(c => c !== cityName);
+        if (siblings.length > 0) {
+          html += `<div style="font-size:11px;color:#5a7a9e;margin-top:12px;margin-bottom:6px;">同省其他城市</div>`;
+          siblings.slice(0, 8).forEach(c => {
+            const d = getPlateDisplay(c);
+            if (!d) return;
+            html += `<div class="city-item ${d.isMulti ? 'multi' : ''}" style="cursor:pointer;opacity:0.75;" onclick="selectCity('${c}')">
+              <span class="name">${c}</span>
+              <span class="plate">${d.plate.join(" ")}</span>
+            </div>`;
+          });
+          if (siblings.length > 8) {
+            html += `<div style="font-size:11px;color:#5a7a9e;text-align:center;padding:4px;">…还有 ${siblings.length - 8} 个城市</div>`;
+          }
+        }
+      }
+
+      infoPanel.innerHTML = html;
+    }
+
+    // 点击侧栏城市名 → 高亮地图
+    window.selectCity = function (cityName) {
+      selectedCityName = cityName;
+      updateInfoPanel(cityName);
+      chart.dispatchAction({ type: "select", seriesIndex: 0, name: cityName });
+      chart.dispatchAction({ type: "highlight", seriesIndex: 0, name: cityName });
+    };
+
+    // ============================================================
+    // 事件监听
+    // ============================================================
+    provinceSelect.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (val === "china") {
+        renderChinaMap();
+      } else {
+        drillToProvince(val);
+      }
+    });
+
+    backBtn.addEventListener("click", () => {
+      provinceSelect.value = "china";
+      renderChinaMap();
+    });
+
+    window.addEventListener("resize", () => chart.resize());
+
+    // ============================================================
+    // 启动
+    // ============================================================
+    renderChinaMap();
+  </script>
+</body>
+</html>
