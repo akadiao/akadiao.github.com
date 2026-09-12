@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DocViewer · 文档编辑器</title>
+<title>DocViewer · 多标签文档编辑器</title>
 <style>
 /* ============================= 主题变量 ============================= */
 :root{
@@ -22,7 +22,7 @@
   --t-ts:#808080; --t-err:#f44747; --t-warn:#dcdcaa; --t-info:#4fc1ff; --t-debug:#808080;
 }
 body.light{
-  --bg-ui:#f3f3f3; --bg-editor:#ffffff; --bg-toolbar:#e8e8e8; --bg-status:#0066b8;
+  --bg-ui:#ececec; --bg-editor:#ffffff; --bg-toolbar:#e8e8e8; --bg-status:#0066b8;
   --fg-ui:#333333; --fg-editor:#24292e; --border:#d4d4d4; --gutter-fg:#9a9a9a;
   --sel: rgba(0,120,215,.25);
   --btn-hover: rgba(0,0,0,.08);
@@ -61,6 +61,71 @@ button.active{background:var(--btn-hover);border-color:var(--t-kw);color:var(--t
 select{padding:4px 6px;}
 .sep{width:1px;height:18px;background:var(--border);margin:0 4px;}
 .spacer{flex:1;}
+
+/* ============================= 标签栏 ============================= */
+.tabbar{
+  display:flex;align-items:stretch;
+  background:var(--bg-ui);
+  border-bottom:1px solid var(--border);
+  flex:0 0 auto;
+  overflow-x:auto;overflow-y:hidden;
+  min-height:35px;
+  scrollbar-width:thin;
+}
+.tabbar::-webkit-scrollbar{height:6px;}
+.tabbar::-webkit-scrollbar-thumb{background:rgba(128,128,128,.35);border-radius:3px;}
+.tabbar::-webkit-scrollbar-track{background:transparent;}
+
+.tab{
+  display:flex;align-items:center;gap:6px;
+  padding:0 6px 0 12px;
+  height:34px;
+  min-width:110px;max-width:230px;
+  border-right:1px solid var(--border);
+  cursor:pointer;
+  font-size:12.5px;
+  color:var(--fg-ui);
+  opacity:.72;
+  user-select:none;
+  position:relative;
+  white-space:nowrap;
+  flex:0 0 auto;
+  transition:background .12s,opacity .12s;
+}
+.tab:hover{opacity:1;background:var(--btn-hover);}
+.tab.active{
+  opacity:1;
+  background:var(--bg-editor);
+  color:var(--fg-editor);
+}
+.tab.active::after{
+  content:'';
+  position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:var(--t-kw);
+}
+.tab-title{
+  overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;
+  max-width:160px;
+}
+.tab-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--t-kw);flex:0 0 auto;
+  display:none;
+}
+.tab.dirty .tab-dot{display:block;}
+.tab-close{
+  width:18px;height:18px;line-height:16px;text-align:center;
+  border-radius:3px;font-size:14px;opacity:.55;flex:0 0 auto;
+}
+.tab-close:hover{background:rgba(128,128,128,.38);opacity:1;}
+.tab-new{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;flex:0 0 auto;font-size:17px;
+  color:var(--fg-ui);opacity:.65;cursor:pointer;
+  border-right:1px solid var(--border);
+  user-select:none;
+}
+.tab-new:hover{opacity:1;background:var(--btn-hover);}
 
 /* ============================= 编辑器 ============================= */
 .editor{
@@ -105,7 +170,6 @@ select{padding:4px 6px;}
 #ta::-webkit-scrollbar-thumb:hover{background:rgba(128,128,128,.7);background-clip:content-box;}
 #ta::-webkit-scrollbar-corner{background:transparent;}
 
-/* 自动换行模式 */
 body.wrap #ta{white-space:pre-wrap;overflow-wrap:anywhere;}
 body.wrap #hlPre{white-space:pre-wrap;overflow-wrap:anywhere;}
 
@@ -172,7 +236,7 @@ body.dragging .dropmask{display:flex;}
     <div class="brand">📄 Doc<span>Viewer</span></div>
     <button id="btnOpen" title="打开文件 (Ctrl+O)">打开</button>
     <button id="btnSave" title="保存 (Ctrl+S)">保存</button>
-    <button id="btnSaveAs">另存为</button>
+    <button id="btnSaveAs" title="另存为 (Ctrl+Shift+S)">另存为</button>
     <button id="btnCopy" title="复制选中内容，未选中则复制全文">复制</button>
     <span class="sep"></span>
     <label style="font-size:12.5px;display:flex;align-items:center;gap:6px;">
@@ -187,6 +251,9 @@ body.dragging .dropmask{display:flex;}
     <button id="btnFontUp" title="增大字号">A+</button>
     <span class="spacer"></span>
   </header>
+
+  <!-- ======================= 标签栏 ======================= -->
+  <nav class="tabbar" id="tabbar"></nav>
 
   <!-- ======================= 编辑区 ======================= -->
   <main class="editor">
@@ -209,7 +276,7 @@ body.dragging .dropmask{display:flex;}
 
 <div class="dropmask">松开鼠标即可打开文件</div>
 <div class="toast" id="toast"></div>
-<input type="file" id="fileInput" hidden
+<input type="file" id="fileInput" hidden multiple
        accept=".txt,.h,.hpp,.c,.cpp,.cc,.cxx,.cs,.pro,.pri,.xml,.ini,.cfg,.conf,.dat,.json,.md,.log,.java,.js,.ts,.py,.html,.htm,.svg,.yml,.yaml,.csv,.sh,.bat,text/*">
 
 <script>
@@ -223,8 +290,6 @@ const escHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'
 
 /* =========================================================================
  *  1. 通用词法扫描引擎
- *     rules: [{ re: 带 y 标志的正则, cls: '类名' } | { re, fn(m, src) }]
- *     按顺序尝试匹配，匹配不上则原样输出（转义后）
  * ========================================================================= */
 function scanRules(src, rules){
   const out = [];
@@ -245,11 +310,11 @@ function scanRules(src, rules){
         ? rule.fn(hit, src)
         : '<span class="' + rule.cls + '">' + escHtml(hit[0]) + '</span>');
       let next = rule.re.lastIndex;
-      if(next <= i) next = i + 1;            // 防止零长度匹配死循环
+      if(next <= i) next = i + 1;
       i = next;
       plainFrom = i;
     }else{
-      i++;                                    // 未匹配：并入纯文本段
+      i++;
     }
   }
   if(plainFrom < n) out.push(escHtml(src.slice(plainFrom)));
@@ -257,7 +322,7 @@ function scanRules(src, rules){
 }
 
 /* =========================================================================
- *  2. C 系语言（.c/.h/.cpp/.cs/.java/.js/.ts...）
+ *  2. C 系语言
  * ========================================================================= */
 const C_KEYWORDS = new Set((
   'alignas alignof asm auto break case catch class const constexpr continue default delete do ' +
@@ -287,7 +352,6 @@ function cIdent(m, src){
   const w = m[0];
   if(C_KEYWORDS.has(w)) return '<span class="tok-kw">' + w + '</span>';
   if(C_TYPES.has(w))    return '<span class="tok-type">' + w + '</span>';
-  // 后面紧跟 '(' 视作函数调用
   let j = m.index + w.length;
   while(j < src.length && (src[j] === ' ' || src[j] === '\t')) j++;
   if(src[j] === '(') return '<span class="tok-fn">' + w + '</span>';
@@ -319,7 +383,7 @@ const jsonRules = [
 const highlightJson = src => scanRules(src, jsonRules);
 
 /* =========================================================================
- *  4. XML / HTML / SVG
+ *  4. XML / HTML
  * ========================================================================= */
 const xmlRules = [
   { re: /<!--[\s\S]*?-->/y,                        cls: 'tok-comment' },
@@ -335,18 +399,15 @@ const xmlRules = [
 const highlightXml = src => scanRules(src, xmlRules);
 
 /* =========================================================================
- *  5. INI / .pro / 配置文件（逐行处理）
+ *  5. INI / .pro
  * ========================================================================= */
 function highlightIni(src){
   return src.split('\n').map(function(line){
     let m;
-    // 注释
     m = line.match(/^(\s*)([#;][^\n]*)$/);
     if(m) return escHtml(m[1]) + '<span class="tok-comment">' + escHtml(m[2]) + '</span>';
-    // 节 [Section]
     m = line.match(/^(\s*)(\[[^\]\n]*\])(.*)$/);
     if(m) return escHtml(m[1]) + '<span class="tok-section">' + escHtml(m[2]) + '</span>' + escHtml(m[3]);
-    // key = value  /  key += value  /  key: value
     m = line.match(/^(\s*)([A-Za-z_][\w.\-]*)(\s*[+\-*~]?=|:)(.*)$/);
     if(m) return escHtml(m[1]) +
                 '<span class="tok-key">' + escHtml(m[2]) + '</span>' +
@@ -467,7 +528,6 @@ function detectLanguage(text, filename){
   const ext = (String(filename || '').split('.').pop() || '').toLowerCase();
   if(EXT_MAP[ext]) return EXT_MAP[ext];
 
-  // ---- 内容嗅探 ----
   const head = text.slice(0, 4000).trim();
 
   if(/^\s*[\[{]/.test(head) && /"\s*:/.test(head.slice(0, 800))) return 'json';
@@ -488,6 +548,7 @@ const hlCode      = document.getElementById('hlCode');
 const gutterInner = document.getElementById('gutterInner');
 const langSel     = document.getElementById('langSel');
 const fileInput   = document.getElementById('fileInput');
+const tabbar      = document.getElementById('tabbar');
 const stFile      = document.getElementById('stFile');
 const stLang      = document.getElementById('stLang');
 const stPos       = document.getElementById('stPos');
@@ -495,22 +556,32 @@ const stCount     = document.getElementById('stCount');
 const stDirty     = document.getElementById('stDirty');
 
 /* =========================================================================
- * 10. 编辑器状态
+ * 10. 多标签状态
  * ========================================================================= */
-let currentName   = '';
-let currentLang   = 'plain';
-let savedValue    = '';
-let dirty         = false;
-let fileHandle    = null;      // File System Access API 句柄
+/**
+ * tab 对象结构：
+ * {
+ *   id:number, name:string, content:string, lang:string, dirty:boolean,
+ *   handle:FileSystemFileHandle|null, savedValue:string,
+ *   scrollTop:number, scrollLeft:number, selStart:number, selEnd:number
+ * }
+ */
+let tabs         = [];
+let activeTabId  = null;
+let tabSeq       = 0;
+let currentLang  = 'plain';
+
 let lineCount     = 1;
 let lastGutterNum = -1;
 let rafId         = 0;
 let cursorRaf     = 0;
 
+const getActiveTab = () => tabs.find(t => t.id === activeTabId) || null;
+
 /* =========================================================================
  * 11. 渲染（高亮 + 行号 + 状态）
  * ========================================================================= */
-const MAX_HIGHLIGHT_LEN = 300000;   // 超过此长度降级为纯文本，避免卡顿
+const MAX_HIGHLIGHT_LEN = 300000;
 
 function render(){
   const code = ta.value;
@@ -522,7 +593,6 @@ function render(){
     hlCode.innerHTML = lang.hl(code);
   }
 
-  // 行号
   let n = 1;
   for(let i = 0; i < code.length; i++) if(code.charCodeAt(i) === 10) n++;
   lineCount = n;
@@ -547,11 +617,13 @@ function syncScroll(){
 }
 
 function updateStatus(){
-  stFile.textContent = currentName || '未打开文件';
-  stLang.textContent = (LANGUAGES[currentLang] || {}).name || '—';
+  const tab = getActiveTab();
+  stFile.textContent  = tab ? tab.name : '未打开文件';
+  stLang.textContent  = (LANGUAGES[currentLang] || {}).name || '—';
   stCount.textContent = ta.value.length + ' 字符 · ' + lineCount + ' 行';
-  stDirty.textContent = dirty ? '● 未保存' : '';
-  document.title = (dirty ? '● ' : '') + (currentName || 'DocViewer') + ' — DocViewer';
+  stDirty.textContent = (tab && tab.dirty) ? '● 未保存' : '';
+  document.title = ((tab && tab.dirty) ? '● ' : '') +
+                   (tab ? tab.name : 'DocViewer') + ' — DocViewer';
 }
 
 function updateCursor(){
@@ -564,7 +636,165 @@ function updateCursor(){
 }
 
 /* =========================================================================
- * 12. 文件加载 / 编码识别
+ * 12. 标签栏渲染
+ * ========================================================================= */
+function renderTabs(){
+  tabbar.innerHTML = '';
+
+  tabs.forEach(function(tab){
+    const el = document.createElement('div');
+    el.className = 'tab' +
+                   (tab.id === activeTabId ? ' active' : '') +
+                   (tab.dirty ? ' dirty' : '');
+    el.title = tab.name;
+
+    const dot = document.createElement('span');
+    dot.className = 'tab-dot';
+
+    const title = document.createElement('span');
+    title.className = 'tab-title';
+    title.textContent = tab.name;
+
+    const close = document.createElement('span');
+    close.className = 'tab-close';
+    close.textContent = '×';
+    close.title = '关闭 (Ctrl+W)';
+    close.addEventListener('click', function(e){
+      e.stopPropagation();
+      closeTab(tab.id);
+    });
+
+    el.appendChild(dot);
+    el.appendChild(title);
+    el.appendChild(close);
+
+    el.addEventListener('click', function(){ activateTab(tab.id); });
+    el.addEventListener('mousedown', function(e){
+      if(e.button === 1){ e.preventDefault(); closeTab(tab.id); }  // 中键关闭
+    });
+
+    tabbar.appendChild(el);
+  });
+
+  const addBtn = document.createElement('div');
+  addBtn.className = 'tab-new';
+  addBtn.textContent = '+';
+  addBtn.title = '新建空白文档';
+  addBtn.addEventListener('click', newBlankTab);
+  tabbar.appendChild(addBtn);
+
+  // 让当前标签可见
+  const activeEl = tabbar.querySelector('.tab.active');
+  if(activeEl && activeEl.scrollIntoView){
+    activeEl.scrollIntoView({ block:'nearest', inline:'nearest' });
+  }
+}
+
+/* =========================================================================
+ * 13. 标签操作
+ * ========================================================================= */
+function saveActiveState(){
+  const tab = getActiveTab();
+  if(!tab) return;
+  tab.content   = ta.value;
+  tab.scrollTop = ta.scrollTop;
+  tab.scrollLeft= ta.scrollLeft;
+  tab.selStart  = ta.selectionStart;
+  tab.selEnd    = ta.selectionEnd;
+  tab.lang      = currentLang;
+  tab.dirty     = tab.content !== tab.savedValue;
+}
+
+function openInNewTab(text, name, handle){
+  const tab = {
+    id: ++tabSeq,
+    name: name || ('untitled-' + tabSeq + '.txt'),
+    content: text,
+    lang: detectLanguage(text, name),
+    dirty: false,
+    handle: handle || null,
+    savedValue: text,
+    scrollTop: 0,
+    scrollLeft: 0,
+    selStart: 0,
+    selEnd: 0
+  };
+  tabs.push(tab);
+  activateTab(tab.id);
+  return tab;
+}
+
+function activateTab(id){
+  if(id === activeTabId) return;
+
+  saveActiveState();
+
+  activeTabId = id;
+  const tab = getActiveTab();
+  if(!tab){ renderTabs(); return; }
+
+  ta.value      = tab.content;
+  currentLang   = tab.lang;
+  langSel.value = tab.lang;
+  lastGutterNum = -1;
+
+  renderTabs();
+  render();
+
+  ta.selectionStart = tab.selStart;
+  ta.selectionEnd   = Math.min(tab.selEnd, tab.content.length);
+  ta.scrollTop      = tab.scrollTop;
+  ta.scrollLeft     = tab.scrollLeft;
+  syncScroll();
+  updateCursor();
+}
+
+function closeTab(id){
+  const idx = tabs.findIndex(t => t.id === id);
+  if(idx < 0) return;
+  const tab = tabs[idx];
+
+  if(tab.id === activeTabId) saveActiveState();
+
+  if(tab.dirty){
+    if(!confirm('“' + tab.name + '” 有未保存的修改，确定要关闭吗？')) return;
+  }
+
+  tabs.splice(idx, 1);
+
+  if(tabs.length === 0){
+    activeTabId = null;
+    newBlankTab();
+    return;
+  }
+
+  if(activeTabId === id){
+    const next = tabs[Math.min(idx, tabs.length - 1)];
+    activeTabId = null;           // 强制触发切换
+    activateTab(next.id);
+  }else{
+    renderTabs();
+  }
+}
+
+function newBlankTab(){
+  let name = 'untitled.txt', i = 2;
+  while(tabs.some(t => t.name === name)){
+    name = 'untitled-' + i + '.txt';
+    i++;
+  }
+  openInNewTab('', name, null);
+}
+
+function switchTab(dir){
+  if(tabs.length < 2) return;
+  const idx  = tabs.findIndex(t => t.id === activeTabId);
+  const next = (idx + dir + tabs.length) % tabs.length;
+  activateTab(tabs[next].id);
+}
+
+/* =========================================================================
+ * 14. 文件加载 / 编码识别
  * ========================================================================= */
 function decodeBuffer(buf){
   const b = new Uint8Array(buf);
@@ -582,54 +812,53 @@ function decodeBuffer(buf){
   }
 }
 
-function loadText(text, name){
-  ta.value = text;
-  ta.scrollTop = 0;
-  ta.scrollLeft = 0;
-  currentName = name || 'untitled.txt';
-  currentLang = detectLanguage(text, name);
-  langSel.value = currentLang;
-  savedValue = text;
-  dirty = false;
-  lastGutterNum = -1;
-  syncScroll();
-  render();
-  updateCursor();
+/** 打开已存在的 tab 或新建 tab */
+function openDoc(text, name, handle){
+  // 若已有同名且未修改的标签，直接切换
+  const exist = tabs.find(t => t.name === name && !t.dirty);
+  if(exist){
+    activateTab(exist.id);
+    toast('已切换到：' + name);
+    return;
+  }
+  openInNewTab(text, name, handle);
+  toast('已打开：' + name);
 }
 
-function readFile(file){
-  const reader = new FileReader();
-  reader.onload = function(){
-    fileHandle = null;
-    loadText(decodeBuffer(reader.result), file.name);
-    toast('已打开：' + file.name);
-  };
-  reader.onerror = function(){ toast('文件读取失败'); };
-  reader.readAsArrayBuffer(file);
+function handleFiles(files){
+  const list = Array.from(files || []);
+  if(!list.length) return;
+  list.forEach(function(file){
+    const reader = new FileReader();
+    reader.onload = function(){
+      openDoc(decodeBuffer(reader.result), file.name, null);
+    };
+    reader.onerror = function(){ toast('文件读取失败：' + file.name); };
+    reader.readAsArrayBuffer(file);
+  });
 }
 
 /* =========================================================================
- * 13. 打开 / 保存 / 另存为 / 复制
+ * 15. 打开 / 保存 / 另存为 / 复制
  * ========================================================================= */
 async function openFile(){
   if(window.showOpenFilePicker){
     try{
       const handles = await window.showOpenFilePicker({
-        multiple: false,
+        multiple: true,
         types: [{
           description: '文本 / 代码文件',
           accept: { 'text/plain': ['.txt','.h','.hpp','.c','.cpp','.cc','.cs','.pro','.ini','.cfg','.dat','.md','.log','.json','.xml','.html','.js','.ts','.java','.yml','.yaml','.csv','.sh','.bat'] }
         }]
       });
-      const handle = handles[0];
-      const file = await handle.getFile();
-      fileHandle = handle;
-      loadText(decodeBuffer(await file.arrayBuffer()), file.name);
-      toast('已打开：' + file.name);
+      for(const handle of handles){
+        const file = await handle.getFile();
+        openDoc(decodeBuffer(await file.arrayBuffer()), file.name, handle);
+      }
       return;
     }catch(err){
       if(err && err.name === 'AbortError') return;
-      // 其他错误则回退到 input
+      // 其它错误回退到 input
     }
   }
   fileInput.value = '';
@@ -643,13 +872,18 @@ async function writeToHandle(handle, text){
 }
 
 async function saveFile(){
-  if(fileHandle && fileHandle.createWritable){
+  const tab = getActiveTab();
+  if(!tab) return;
+  saveActiveState();
+
+  if(tab.handle && tab.handle.createWritable){
     try{
-      await writeToHandle(fileHandle, ta.value);
-      savedValue = ta.value;
-      dirty = false;
+      await writeToHandle(tab.handle, tab.content);
+      tab.savedValue = tab.content;
+      tab.dirty      = false;
+      renderTabs();
       updateStatus();
-      toast('已保存到 ' + (currentName || '文件'));
+      toast('已保存到 ' + tab.name);
       return;
     }catch(err){
       console.error(err);
@@ -660,22 +894,27 @@ async function saveFile(){
 }
 
 async function saveAsFile(){
+  const tab = getActiveTab();
+  if(!tab) return;
+  saveActiveState();
+
   if(window.showSaveFilePicker){
     try{
       const handle = await window.showSaveFilePicker({
-        suggestedName: currentName || 'untitled.txt',
+        suggestedName: tab.name || 'untitled.txt',
         types: [{
           description: '文本文件',
           accept: { 'text/plain': ['.txt','.md','.log','.json','.xml','.ini','.dat','.pro','.c','.cpp','.h','.cs'] }
         }]
       });
-      await writeToHandle(handle, ta.value);
-      fileHandle = handle;
-      currentName = handle.name || currentName;
-      savedValue = ta.value;
-      dirty = false;
+      await writeToHandle(handle, tab.content);
+      tab.handle     = handle;
+      tab.name       = handle.name || tab.name;
+      tab.savedValue = tab.content;
+      tab.dirty      = false;
+      renderTabs();
       updateStatus();
-      toast('已另存为：' + currentName);
+      toast('已另存为：' + tab.name);
       return;
     }catch(err){
       if(err && err.name === 'AbortError') return;
@@ -686,18 +925,23 @@ async function saveAsFile(){
 }
 
 function downloadFile(){
-  const blob = new Blob([ta.value], { type:'text/plain;charset=utf-8' });
+  const tab = getActiveTab();
+  if(!tab) return;
+  saveActiveState();
+
+  const blob = new Blob([tab.content], { type:'text/plain;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
-  a.download = currentName || 'untitled.txt';
+  a.download = tab.name || 'untitled.txt';
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
 
-  savedValue = ta.value;
-  dirty = false;
+  tab.savedValue = tab.content;
+  tab.dirty      = false;
+  renderTabs();
   updateStatus();
   toast('已导出文件：' + a.download);
 }
@@ -717,7 +961,7 @@ async function copyContent(){
 }
 
 /* =========================================================================
- * 14. 提示条
+ * 16. 提示条
  * ========================================================================= */
 const toastEl = document.getElementById('toast');
 let toastTimer = 0;
@@ -729,7 +973,7 @@ function toast(msg){
 }
 
 /* =========================================================================
- * 15. 事件绑定
+ * 17. 事件绑定
  * ========================================================================= */
 // --- 语言下拉框 ---
 Object.keys(LANGUAGES).forEach(function(key){
@@ -739,10 +983,17 @@ Object.keys(LANGUAGES).forEach(function(key){
   langSel.appendChild(opt);
 });
 
-// --- 编辑区 ---
+// --- 编辑区输入 ---
 ta.addEventListener('input', function(){
-  if(!dirty && ta.value !== savedValue){ dirty = true; }
-  if(ta.value === savedValue) dirty = false;
+  const tab = getActiveTab();
+  if(tab){
+    tab.content = ta.value;
+    const nowDirty = ta.value !== tab.savedValue;
+    if(nowDirty !== tab.dirty){
+      tab.dirty = nowDirty;
+      renderTabs();
+    }
+  }
   scheduleRender();
 });
 ta.addEventListener('scroll', syncScroll, { passive:true });
@@ -756,16 +1007,22 @@ document.addEventListener('selectionchange', function(){
   cursorRaf = requestAnimationFrame(function(){ cursorRaf = 0; updateCursor(); });
 });
 
-// Tab 键插入 4 空格
+// --- 键盘 ---
 ta.addEventListener('keydown', function(e){
   const mod = e.ctrlKey || e.metaKey;
+
+  // Ctrl+Tab / Ctrl+Shift+Tab 切换标签（必须放在 Tab 处理之前）
+  if(e.ctrlKey && e.key === 'Tab'){
+    e.preventDefault();
+    switchTab(e.shiftKey ? -1 : 1);
+    return;
+  }
 
   if(e.key === 'Tab'){
     e.preventDefault();
     if(!e.shiftKey){
       ta.setRangeText('    ', ta.selectionStart, ta.selectionEnd, 'end');
     }else{
-      // 反向缩进：删除光标前最多 4 个空格
       const s = ta.selectionStart;
       const lineStart = ta.value.lastIndexOf('\n', s - 1) + 1;
       let cut = 0;
@@ -776,9 +1033,10 @@ ta.addEventListener('keydown', function(e){
     return;
   }
 
-  if(mod && e.key.toLowerCase() === 's'){ e.preventDefault(); saveFile(); return; }
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 's'){ e.preventDefault(); saveFile(); return; }
+  if(mod &&  e.shiftKey && e.key.toLowerCase() === 's'){ e.preventDefault(); saveAsFile(); return; }
   if(mod && e.key.toLowerCase() === 'o'){ e.preventDefault(); openFile(); return; }
-  if(mod && e.shiftKey && e.key.toLowerCase() === 's'){ e.preventDefault(); saveAsFile(); return; }
+  if(mod && e.key.toLowerCase() === 'w'){ e.preventDefault(); closeTab(activeTabId); return; }
 });
 
 // --- 工具栏 ---
@@ -799,24 +1057,25 @@ document.getElementById('btnTheme').addEventListener('click', function(){
   this.classList.toggle('active', document.body.classList.contains('light'));
 });
 
+let fontSize = 13;
 function setFontSize(px){
-  px = Math.min(28, Math.max(10, px));
-  document.documentElement.style.setProperty('--fs', px + 'px');
+  fontSize = Math.min(28, Math.max(10, px));
+  document.documentElement.style.setProperty('--fs', fontSize + 'px');
   syncScroll();
 }
-let fontSize = 13;
-document.getElementById('btnFontDown').addEventListener('click', function(){ setFontSize(--fontSize); });
-document.getElementById('btnFontUp').addEventListener('click', function(){ setFontSize(++fontSize); });
+document.getElementById('btnFontDown').addEventListener('click', function(){ setFontSize(fontSize - 1); });
+document.getElementById('btnFontUp').addEventListener('click', function(){ setFontSize(fontSize + 1); });
 
 langSel.addEventListener('change', function(){
   currentLang = langSel.value;
+  const tab = getActiveTab();
+  if(tab) tab.lang = currentLang;
   render();
   updateStatus();
 });
 
 fileInput.addEventListener('change', function(){
-  const f = fileInput.files && fileInput.files[0];
-  if(f) readFile(f);
+  if(fileInput.files && fileInput.files.length) handleFiles(fileInput.files);
 });
 
 // --- 拖拽打开 ---
@@ -837,13 +1096,15 @@ fileInput.addEventListener('change', function(){
   });
 });
 document.addEventListener('drop', function(e){
-  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-  if(f) readFile(f);
+  const files = e.dataTransfer && e.dataTransfer.files;
+  if(files && files.length) handleFiles(files);
 });
 
-// --- 离开未保存提醒 ---
+// --- 离开未保存提醒（检查所有标签） ---
 window.addEventListener('beforeunload', function(e){
-  if(dirty){
+  const anyDirty = tabs.some(t => t.dirty) ||
+                   (getActiveTab() && ta.value !== getActiveTab().savedValue);
+  if(anyDirty){
     e.preventDefault();
     e.returnValue = '';
     return '';
@@ -851,11 +1112,11 @@ window.addEventListener('beforeunload', function(e){
 });
 
 /* =========================================================================
- * 16. 初始化：载入示例
+ * 18. 初始化：载入示例文档
  * ========================================================================= */
-const SAMPLE = [
+const SAMPLE_C = [
   '/**',
-  ' * DocViewer 示例文档',
+  ' * DocViewer 示例文档 — 多标签编辑器',
   ' * 支持 .txt .h .cpp .c .cs .pro .xml .ini .dat .json .md .log 等格式',
   ' */',
   '#include <stdio.h>',
@@ -873,7 +1134,42 @@ const SAMPLE = [
   '}'
 ].join('\n');
 
-loadText(SAMPLE, 'example.c');
+const SAMPLE_JSON = [
+  '{',
+  '  "name": "DocViewer",',
+  '  "version": "2.0.0",',
+  '  "features": ["多标签", "语法高亮", "自动识别"],',
+  '  "enabled": true,',
+  '  "maxTabs": null',
+  '}'
+].join('\n');
+
+const SAMPLE_MD = [
+  '# DocViewer 使用说明',
+  '',
+  '> 一个纯前端的文档编辑器，支持多标签切换。',
+  '',
+  '## 快捷键',
+  '',
+  '- `Ctrl + O` 打开文件',
+  '- `Ctrl + S` 保存文件',
+  '- `Ctrl + W` 关闭当前标签',
+  '- `Ctrl + Tab` 切换标签',
+  '',
+  '```c',
+  'int main(void) { return 0; }',
+  '```',
+  '',
+  '**祝使用愉快！**'
+].join('\n');
+
+// 打开三个示例标签，演示多文档同时显示
+openInNewTab(SAMPLE_C,    'example.c',      null);
+openInNewTab(SAMPLE_JSON, 'config.json',    null);
+openInNewTab(SAMPLE_MD,   'README.md',      null);
+
+// 定位到第一个标签
+activateTab(tabs[0].id);
 setFontSize(13);
 
 })();
